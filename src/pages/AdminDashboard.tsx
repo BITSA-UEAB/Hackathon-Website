@@ -53,6 +53,19 @@ interface BlogPost {
   published_at: string | null;
 }
 
+interface Event {
+  id: number;
+  title: string;
+  description: string;
+  date: string;
+  time: string;
+  location: string;
+  category: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
 const AdminDashboard = () => {
   const { user, isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
@@ -99,6 +112,26 @@ const AdminDashboard = () => {
     category: 'General',
     tags: '',
     read_time: 5
+  });
+  const [events, setEvents] = useState<Event[]>([]);
+  const [addEventDialogOpen, setAddEventDialogOpen] = useState(false);
+  const [editEventDialogOpen, setEditEventDialogOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [newEvent, setNewEvent] = useState({
+    title: '',
+    description: '',
+    date: '',
+    time: '',
+    location: '',
+    category: 'hackathon'
+  });
+  const [editEvent, setEditEvent] = useState({
+    title: '',
+    description: '',
+    date: '',
+    time: '',
+    location: '',
+    category: 'hackathon'
   });
 
   // Redirect if not authenticated or not admin
@@ -476,6 +509,135 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchEvents = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/events/`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setEvents(data);
+      } else {
+        toast.error('Failed to fetch events');
+      }
+    } catch (error) {
+      toast.error('Error fetching events');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addEvent = async () => {
+    if (!newEvent.title || !newEvent.description || !newEvent.date || !newEvent.time || !newEvent.location) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/events/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(newEvent),
+      });
+
+      if (response.ok) {
+        toast.success('Event created successfully');
+        setAddEventDialogOpen(false);
+        setNewEvent({
+          title: '',
+          description: '',
+          date: '',
+          time: '',
+          location: '',
+          category: 'hackathon'
+        });
+        fetchEvents();
+      } else {
+        const error = await response.json();
+        toast.error(error.error || 'Failed to create event');
+      }
+    } catch (error) {
+      toast.error('Error creating event');
+    }
+  };
+
+  const openEditEventDialog = (event: Event) => {
+    setSelectedEvent(event);
+    setEditEvent({
+      title: event.title,
+      description: event.description,
+      date: event.date,
+      time: event.time,
+      location: event.location,
+      category: event.category
+    });
+    setEditEventDialogOpen(true);
+  };
+
+  const editEventSubmit = async () => {
+    if (!selectedEvent || !editEvent.title || !editEvent.description || !editEvent.date || !editEvent.time || !editEvent.location) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/events/${selectedEvent.id}/`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(editEvent),
+      });
+
+      if (response.ok) {
+        toast.success('Event updated successfully');
+        setEditEventDialogOpen(false);
+        setSelectedEvent(null);
+        setEditEvent({
+          title: '',
+          description: '',
+          date: '',
+          time: '',
+          location: '',
+          category: 'hackathon'
+        });
+        fetchEvents();
+      } else {
+        const error = await response.json();
+        toast.error(error.error || 'Failed to update event');
+      }
+    } catch (error) {
+      toast.error('Error updating event');
+    }
+  };
+
+  const deleteEvent = async (eventId: number) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/events/${eventId}/`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
+
+      if (response.ok) {
+        toast.success('Event deleted successfully');
+        fetchEvents();
+      } else {
+        toast.error('Failed to delete event');
+      }
+    } catch (error) {
+      toast.error('Error deleting event');
+    }
+  };
+
   useEffect(() => {
     if (activeTab === 'users') {
       fetchUsers();
@@ -484,6 +646,8 @@ const AdminDashboard = () => {
       fetchBlogPosts();
     } else if (activeTab === 'overview') {
       fetchBlogPosts();
+    } else if (activeTab === 'events') {
+      fetchEvents();
     }
   }, [activeTab]);
 
@@ -1015,8 +1179,164 @@ const AdminDashboard = () => {
                 <CardDescription>Create and manage BITSA events</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">Event management features coming soon...</p>
-                <Button className="mt-4">Create New Event</Button>
+                <div className="flex justify-between items-center mb-4">
+                  <div>
+                    <h3 className="text-lg font-medium">All Events</h3>
+                    <p className="text-sm text-muted-foreground">Manage events and their details</p>
+                  </div>
+                  <Dialog open={addEventDialogOpen} onOpenChange={setAddEventDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Event
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl">
+                      <DialogHeader>
+                        <DialogTitle>Add New Event</DialogTitle>
+                        <DialogDescription>
+                          Create a new event for the BITSA website.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="event_title">Title *</Label>
+                          <Input
+                            id="event_title"
+                            value={newEvent.title}
+                            onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+                            placeholder="Enter event title"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="event_description">Description *</Label>
+                          <Textarea
+                            id="event_description"
+                            value={newEvent.description}
+                            onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
+                            placeholder="Enter event description"
+                            rows={4}
+                          />
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="event_date">Date *</Label>
+                            <Input
+                              id="event_date"
+                              type="date"
+                              value={newEvent.date}
+                              onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="event_time">Time *</Label>
+                            <Input
+                              id="event_time"
+                              type="time"
+                              value={newEvent.time}
+                              onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })}
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="event_location">Location *</Label>
+                            <Input
+                              id="event_location"
+                              value={newEvent.location}
+                              onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
+                              placeholder="Enter event location"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="event_category">Category</Label>
+                            <Select value={newEvent.category} onValueChange={(value) => setNewEvent({ ...newEvent, category: value })}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select category" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="hackathon">Hackathon</SelectItem>
+                                <SelectItem value="workshop">Workshop</SelectItem>
+                                <SelectItem value="talk">Talk</SelectItem>
+                                <SelectItem value="meeting">Meeting</SelectItem>
+                                <SelectItem value="competition">Competition</SelectItem>
+                                <SelectItem value="other">Other</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        <div className="flex justify-end gap-2">
+                          <Button variant="outline" onClick={() => setAddEventDialogOpen(false)}>
+                            Cancel
+                          </Button>
+                          <Button onClick={addEvent}>
+                            Create Event
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+
+                {loading ? (
+                  <p>Loading events...</p>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Title</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Time</TableHead>
+                        <TableHead>Location</TableHead>
+                        <TableHead>Category</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {events.map((event) => (
+                        <TableRow key={event.id}>
+                          <TableCell className="font-medium">{event.title}</TableCell>
+                          <TableCell>{new Date(event.date).toLocaleDateString()}</TableCell>
+                          <TableCell>{event.time}</TableCell>
+                          <TableCell>{event.location}</TableCell>
+                          <TableCell>
+                            <Badge variant="secondary">
+                              {event.category.charAt(0).toUpperCase() + event.category.slice(1)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={event.status === 'upcoming' ? 'default' : event.status === 'ongoing' ? 'secondary' : 'outline'}>
+                              {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-1">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openEditEventDialog(event)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => deleteEvent(event.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+
+                {events.length === 0 && (
+                  <p className="text-muted-foreground text-center py-8">No events found.</p>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
