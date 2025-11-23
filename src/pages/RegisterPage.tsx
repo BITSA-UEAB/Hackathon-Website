@@ -228,7 +228,7 @@ const RegisterPage = () => {
                 <Input
                   id="name"
                   type="text"
-                  placeholder="John Doe"
+                  placeholder="Bitsa Lab"
                   {...register("name")}
                   className={`h-11 ${errors.name ? "border-destructive focus-visible:ring-destructive" : ""}`}
                 />

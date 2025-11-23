@@ -13,6 +13,7 @@ class BlogPostAdmin(admin.ModelAdmin):
     ordering = ('-created_at',)
     fieldsets = (
         ('Basic', {'fields': ('title', 'content', 'excerpt', 'author')}),
+        ('Media', {'fields': ('image',)}),
         ('Metadata', {'fields': ('category', 'tags', 'read_time')}),
         ('Publishing', {'fields': ('is_published', 'published_at')}),
         ('Timestamps', {'fields': ('created_at', 'updated_at'), 'classes': ('collapse',)}),

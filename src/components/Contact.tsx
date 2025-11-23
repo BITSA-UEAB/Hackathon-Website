@@ -60,7 +60,7 @@ const Contact = () => {
   ];
 
   return (
-    <section className="py-20 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
+    <section className="py-20" style={{backgroundColor: '#e0f2fe', position: 'relative', overflow: 'hidden'}}>
       {/* Background Elements */}
       <div className="absolute inset-0">
         <div className="absolute top-10 left-10 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>

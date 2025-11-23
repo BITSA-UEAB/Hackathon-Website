@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Menu, X, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   DropdownMenu,
@@ -15,6 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
+  const location = useLocation();
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-b border-blue-100 shadow-sm">
@@ -30,42 +31,21 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <Link
-              to="/"
-              className="text-gray-700 hover:text-blue-600 transition-all duration-300 font-semibold text-lg hover:scale-105"
-            >
-              Home
-            </Link>
-            <Link
-              to="/about"
-              className="text-gray-700 hover:text-blue-600 transition-all duration-300 font-semibold text-lg hover:scale-105"
-            >
-              About
-            </Link>
-            <Link
-              to="/events"
-              className="text-gray-700 hover:text-blue-600 transition-all duration-300 font-semibold text-lg hover:scale-105"
-            >
-              Events
-            </Link>
-            <Link
-              to="/blog"
-              className="text-gray-700 hover:text-blue-600 transition-all duration-300 font-semibold text-lg hover:scale-105"
-            >
-              Blog
-            </Link>
-            <Link
-              to="/gallery"
-              className="text-gray-700 hover:text-blue-600 transition-all duration-300 font-semibold text-lg hover:scale-105"
-            >
-              Gallery
-            </Link>
-            <Link
-              to="/contact"
-              className="text-gray-700 hover:text-blue-600 transition-all duration-300 font-semibold text-lg hover:scale-105"
-            >
-              Contact
-            </Link>
+            {['/', '/about', '/events', '/blog', '/gallery', '/contact'].map((path) => {
+              const label = path === '/' ? 'Home' : path.slice(1).charAt(0).toUpperCase() + path.slice(2);
+              const isActive = location.pathname === path;
+              const baseClass = "text-gray-700 hover:text-blue-600 transition-all duration-300 font-semibold text-lg hover:scale-105";
+              const activeClass = "text-blue-700 underline font-bold";
+              return (
+                <Link
+                  key={path}
+                  to={path}
+                  className={`${baseClass} ${isActive ? activeClass : ''}`}
+                >
+                  {label}
+                </Link>
+              );
+            })}
 
             {isAuthenticated ? (
               <DropdownMenu>
@@ -152,51 +132,25 @@ const Navbar = () => {
           </button>
         </div>
 
-        {/* Mobile Navigation */}
-        {isOpen && (
-          <div className="md:hidden py-6 space-y-3 border-t border-blue-100 bg-white/98 backdrop-blur-xl shadow-lg">
-            <Link
-              to="/"
-              className="block w-full text-left text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-all duration-300 py-4 px-6 rounded-xl font-semibold text-lg border border-transparent hover:border-blue-200"
-              onClick={() => setIsOpen(false)}
-            >
-              Home
-            </Link>
-            <Link
-              to="/about"
-              className="block w-full text-left text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-all duration-300 py-4 px-6 rounded-xl font-semibold text-lg border border-transparent hover:border-blue-200"
-              onClick={() => setIsOpen(false)}
-            >
-              About
-            </Link>
-            <Link
-              to="/events"
-              className="block w-full text-left text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-all duration-300 py-4 px-6 rounded-xl font-semibold text-lg border border-transparent hover:border-blue-200"
-              onClick={() => setIsOpen(false)}
-            >
-              Events
-            </Link>
-            <Link
-              to="/blog"
-              className="block w-full text-left text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-all duration-300 py-4 px-6 rounded-xl font-semibold text-lg border border-transparent hover:border-blue-200"
-              onClick={() => setIsOpen(false)}
-            >
-              Blog
-            </Link>
-            <Link
-              to="/gallery"
-              className="block w-full text-left text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-all duration-300 py-4 px-6 rounded-xl font-semibold text-lg border border-transparent hover:border-blue-200"
-              onClick={() => setIsOpen(false)}
-            >
-              Gallery
-            </Link>
-            <Link
-              to="/contact"
-              className="block w-full text-left text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-all duration-300 py-4 px-6 rounded-xl font-semibold text-lg border border-transparent hover:border-blue-200"
-              onClick={() => setIsOpen(false)}
-            >
-              Contact
-            </Link>
+          {/* Mobile Navigation */}
+          {isOpen && (
+            <div className="md:hidden py-6 space-y-3 border-t border-blue-100 bg-white/98 backdrop-blur-xl shadow-lg">
+              {['/', '/about', '/events', '/blog', '/gallery', '/contact'].map((path) => {
+                const label = path === '/' ? 'Home' : path.slice(1).charAt(0).toUpperCase() + path.slice(2);
+                const isActive = location.pathname === path;
+                const baseClass = "block w-full text-left text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-all duration-300 py-4 px-6 rounded-xl font-semibold text-lg border border-transparent hover:border-blue-200";
+                const activeClass = "text-blue-700 underline font-bold";
+                return (
+                  <Link
+                    key={path}
+                    to={path}
+                    className={`${baseClass} ${isActive ? activeClass : ''}`}
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {label}
+                  </Link>
+               );
+              })}
 
             {isAuthenticated ? (
               <div className="space-y-4 pt-6 border-t border-blue-100">

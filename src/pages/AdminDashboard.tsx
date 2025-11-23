@@ -538,7 +538,26 @@ const AdminDashboard = () => {
       });
       if (response.ok) {
         const data = await response.json();
-        setEvents(data);
+
+        // Fetch attendees for each event
+        const eventsWithAttendees = await Promise.all(
+          data.map(async (event) => {
+            try {
+              const attendeesResp = await fetch(`${API_BASE_URL}/events/${event.id}/attendees/`, {
+                headers: { 'Authorization': `Bearer ${accessToken}` },
+              });
+              if (attendeesResp.ok) {
+                const attendees = await attendeesResp.json();
+                return { ...event, attendees };
+              }
+              return { ...event, attendees: [] };
+            } catch {
+              return { ...event, attendees: [] };
+            }
+          })
+        );
+
+        setEvents(eventsWithAttendees);
       } else {
         toast.error('Failed to fetch events');
       }
@@ -1332,55 +1351,67 @@ const AdminDashboard = () => {
                   <p>Loading events...</p>
                 ) : (
                   <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Title</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Time</TableHead>
-                        <TableHead>Location</TableHead>
-                        <TableHead>Category</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {events.map((event) => (
-                        <TableRow key={event.id}>
-                          <TableCell className="font-medium">{event.title}</TableCell>
-                          <TableCell>{new Date(event.date).toLocaleDateString()}</TableCell>
-                          <TableCell>{event.time}</TableCell>
-                          <TableCell>{event.location}</TableCell>
-                          <TableCell>
-                            <Badge variant="secondary">
-                              {event.category.charAt(0).toUpperCase() + event.category.slice(1)}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={event.status === 'upcoming' ? 'default' : event.status === 'ongoing' ? 'secondary' : 'outline'}>
-                              {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-1">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => openEditEventDialog(event)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={() => deleteEvent(event.id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Title</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead>Time</TableHead>
+              <TableHead>Location</TableHead>
+              <TableHead>Category</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Attendees</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {events.map((event) => (
+              <TableRow key={event.id}>
+                <TableCell className="font-medium">{event.title}</TableCell>
+                <TableCell>{new Date(event.date).toLocaleDateString()}</TableCell>
+                <TableCell>{event.time}</TableCell>
+                <TableCell>{event.location}</TableCell>
+                <TableCell>
+                  <Badge variant="secondary">
+                    {event.category.charAt(0).toUpperCase() + event.category.slice(1)}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge variant={event.status === 'upcoming' ? 'default' : event.status === 'ongoing' ? 'secondary' : 'outline'}>
+                    {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  {event.attendees && event.attendees.length > 0 ? (
+                    <ul className="list-disc list-inside text-sm max-h-24 overflow-y-auto">
+                      {event.attendees.map((attendee: any) => (
+                        <li key={attendee.id}>{attendee.name} ({attendee.email})</li>
                       ))}
-                    </TableBody>
+                    </ul>
+                  ) : (
+                    <span className="text-muted-foreground text-sm">No attendees</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openEditEventDialog(event)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => deleteEvent(event.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
                   </Table>
                 )}
 

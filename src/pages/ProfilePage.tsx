@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -14,6 +14,47 @@ import { User, Mail, Calendar, Settings } from "lucide-react";
 const ProfilePage = () => {
   const { user, isAuthenticated, updateProfile, logout } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  
+  const [events, setEvents] = useState([]);
+  const [loadingEvents, setLoadingEvents] = useState(false);
+  const [error, setError] = useState(null);
+
+  // New state for confirmed events
+  const [confirmedEvents, setConfirmedEvents] = useState([]);
+  const [loadingConfirmedEvents, setLoadingConfirmedEvents] = useState(false);
+  const [errorConfirmedEvents, setErrorConfirmedEvents] = useState(null);
+
+  // State to track cancelling status by event id
+  const [cancellingEventIds, setCancellingEventIds] = useState<string[]>([]);
+
+  // Fetch confirmed events on component mount
+  useEffect(() => {
+    const fetchConfirmedEvents = async () => {
+      setLoadingConfirmedEvents(true);
+      setErrorConfirmedEvents(null);
+      try {
+        const token = localStorage.getItem('access_token');
+        const response = await fetch('http://localhost:8000/api/events/my-events/', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setConfirmedEvents(data);
+        } else {
+          setErrorConfirmedEvents('Failed to load confirmed events');
+        }
+      } catch (err) {
+        setErrorConfirmedEvents('Network error while loading confirmed events');
+      } finally {
+        setLoadingConfirmedEvents(false);
+      }
+    };
+
+    fetchConfirmedEvents();
+  }, []);
+
   const [formData, setFormData] = useState({
     name: user?.name || "",
     email: user?.email || "",
@@ -38,8 +79,43 @@ const ProfilePage = () => {
     setIsEditing(false);
   };
 
+  // Cancel attendance handler with confirmation and loading state
+  const handleCancelAttendance = async (eventId: string) => {
+    const confirmCancel = window.confirm("Are you sure you want to cancel your attendance?");
+    if (!confirmCancel) return;
+
+    setCancellingEventIds((prev) => [...prev, eventId]);
+
+    const token = localStorage.getItem('access_token');
+    try {
+      const response = await fetch(`http://localhost:8000/api/events/${eventId}/rsvp/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.status === 'removed') {
+          setConfirmedEvents((prev) => prev.filter((e) => e.id !== eventId));
+          alert('Attendance cancelled successfully.');
+        } else {
+          alert('Unexpected response from server.');
+        }
+      } else {
+        const errorData = await response.json();
+        alert(`Error: ${errorData.error || 'Failed to cancel attendance'}`);
+      }
+    } catch (error) {
+      alert('Network error, please try again.');
+    } finally {
+      setCancellingEventIds((prev) => prev.filter((id) => id !== eventId));
+    }
+  };
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-r from-[#f0f9ff] via-[#e0f2fe] to-[#dbeafe]">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto space-y-6">
@@ -133,6 +209,61 @@ const ProfilePage = () => {
                   </div>
                   <Button onClick={() => setIsEditing(true)}>Edit Profile</Button>
                 </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Confirmed Events Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Confirmed Events</CardTitle>
+              <CardDescription>Events you have confirmed attendance for</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loadingConfirmedEvents ? (
+                <p>Loading your confirmed events...</p>
+              ) : errorConfirmedEvents ? (
+                <p className="text-destructive">{errorConfirmedEvents}</p>
+              ) : confirmedEvents.length === 0 ? (
+                <p>You have not confirmed attendance for any events yet.</p>
+              ) : (
+                <ul className="space-y-4">
+                  {confirmedEvents.map((event: any) => {
+                    const eventStart = new Date(event.start_time || event.date || event.created_at);
+                    const now = new Date();
+                    const canCancel = eventStart > now;
+                    const isCancelling = cancellingEventIds.includes(event.id);
+                    return (
+                      <li key={event.id} className="border p-4 rounded-lg bg-muted/50 flex flex-col gap-2">
+                        <h3 className="text-lg font-semibold">{event.title}</h3>
+                        <p>{event.description}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Date & Time: {eventStart.toLocaleString()}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Venue: {event.location || 'N/A'}
+                        </p>
+                        {canCancel ? (
+                          <button
+                            className={`self-start px-3 py-1 rounded text-white transition-colors ${isCancelling ? 'bg-gray-500 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'}`}
+                            onClick={() => handleCancelAttendance(event.id)}
+                            disabled={isCancelling}
+                          >
+                            {isCancelling ? 'Cancelling...' : 'Cancel Attendance'}
+                          </button>
+                        ) : (
+                          <button
+                            className="self-start px-3 py-1 rounded bg-gray-400 text-gray-700 cursor-not-allowed"
+                            disabled
+                            title="Cannot cancel past or ongoing event"
+                          >
+                            Cannot Cancel
+                          </button>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
               )}
             </CardContent>
           </Card>
