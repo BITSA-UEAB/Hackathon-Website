@@ -59,7 +59,7 @@ const About = () => {
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-300 shadow-sm mb-5">
             <Sparkles className="w-4 h-4 text-slate-600" />
             <span className="text-sm font-semibold text-slate-700">
-              About Our Community
+              About Our Communityprocee
             </span>
           </div>
           

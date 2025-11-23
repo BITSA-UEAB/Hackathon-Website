@@ -10,8 +10,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Shield, Zap, Users, TrendingUp, CheckCircle2, Lock, Mail, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import Navbar from "@/components/Navbar";
-
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
@@ -90,9 +88,11 @@ const LoginPage = () => {
 
   return (
     <>
-      <Navbar />
+      <header className="p-4 flex justify-center border-b border-gray-200">
+        <img src="/bitsa logo.png" alt="Bitsa Logo" className="h-12" />
+      </header>
       <div className="min-h-screen flex">
-        {/* Left Side - Branding & Information */}
+        {/* Left Side - Branding & Information */}  
         <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary via-primary/90 to-accent p-12 text-primary-foreground flex-col justify-between relative overflow-hidden">
           {/* Background Pattern */}
           <div className="absolute inset-0 opacity-10">

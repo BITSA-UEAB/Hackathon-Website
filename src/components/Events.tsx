@@ -66,7 +66,7 @@ const Events = () => {
       <section className="min-h-screen py-20 relative overflow-hidden">
         {/* Animated background gradient */}
         <div 
-          className="absolute inset-0 opacity-30"
+          className="absolute inset-0 opacity-30"P
           style={{
             background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
           }}
