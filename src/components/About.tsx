@@ -1,5 +1,4 @@
 import { Code, Lightbulb, Users2, Trophy, Target, Heart, Sparkles, Rocket, Calendar, Star } from "lucide-react";
-import { Link } from "react-router-dom";
 
 const About = () => {
   const values = [
@@ -45,32 +44,32 @@ const About = () => {
   ];
 
   return (
-<section className="py-20 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)' }}>
+    <section className="py-20 relative overflow-hidden bg-sky-50">
       {/* Background Elements */}
       <div className="absolute inset-0">
-        <div className="absolute top-10 right-10 w-72 h-72 bg-slate-300 rounded-full opacity-70"></div>
-        <div className="absolute bottom-10 left-10 w-72 h-72 bg-slate-400 rounded-full opacity-70"></div>
-        <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-slate-500 rounded-full opacity-70"></div>
+        <div className="absolute top-10 right-10 w-72 h-72 bg-sky-200 rounded-full opacity-40 animate-float"></div>
+        <div className="absolute bottom-10 left-10 w-72 h-72 bg-blue-200 rounded-full opacity-40 animate-float-delayed"></div>
+        <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-sky-300 rounded-full opacity-30 animate-pulse-slow"></div>
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
         {/* Header Section */}
         <div className="max-w-4xl mx-auto text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-300 shadow-sm mb-5">
-            <Sparkles className="w-4 h-4 text-slate-600" />
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-300 shadow-sm mb-5 animate-fade-in-down">
+            <Sparkles className="w-4 h-4 text-slate-600 animate-spin-slow" />
             <span className="text-sm font-semibold text-slate-700">
-              About Our Communityprocee
+              About Our Community
             </span>
           </div>
           
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-slate-900">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-slate-900 animate-fade-in">
             Shaping the Future of{" "}
             <span className="text-slate-700">
               Tech Talent
             </span>
           </h2>
           
-          <p className="text-lg md:text-xl text-slate-700 leading-relaxed max-w-3xl mx-auto">
+          <p className="text-lg md:text-xl text-slate-700 leading-relaxed max-w-3xl mx-auto animate-fade-in-up">
             BITSA is where passionate IT students transform into industry-ready professionals through 
             <span className="font-semibold text-slate-700"> collaborative innovation</span>, 
             <span className="font-semibold text-slate-700"> hands-on learning</span>, and 
@@ -85,7 +84,8 @@ const About = () => {
             return (
               <div
                 key={index}
-                className="text-center p-5 rounded-2xl bg-white border border-slate-300 hover:border-slate-400 transition-all duration-300 hover:shadow-lg"
+                className="text-center p-5 rounded-2xl bg-white border border-slate-300 hover:border-slate-400 transition-all duration-300 hover:shadow-lg transform hover:scale-105 animate-fade-in-up"
+                style={{ animationDelay: `${index * 100}ms` }}
               >
                 <div className="w-11 h-11 rounded-xl bg-slate-600 flex items-center justify-center mb-3 mx-auto">
                   <Icon className="text-white" size={22} />
@@ -182,27 +182,80 @@ const About = () => {
             Ready to join our community of innovators?
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/register">
-              <button className="px-7 py-3 bg-slate-600 hover:bg-slate-700 text-white rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-                Join BITSA Today
-              </button>
-            </Link>
-            <Link to="/events">
-              <button className="px-7 py-3 border-2 border-slate-300 text-slate-700 hover:bg-slate-50 rounded-2xl font-semibold transition-all duration-300">
-                Learn More
-              </button>
-            </Link>
+            <button className="px-7 py-3 bg-slate-600 hover:bg-slate-700 text-white rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+              Join BITSA Today
+            </button>
+            <button className="px-7 py-3 border-2 border-slate-300 text-slate-700 hover:bg-slate-50 rounded-2xl font-semibold transition-all duration-300">
+              Learn More
+            </button>
           </div>
         </div>
       </div>
 
       {/* Custom Animation Styles */}
       <style>{`
-        @keyframes blob {
-          0% { transform: translate(0px, 0px) scale(1); }
-          33% { transform: translate(30px, -50px) scale(1.1); }
-          66% { transform: translate(-20px, 20px) scale(0.9); }
-          100% { transform: translate(0px, 0px) scale(1); }
+        @keyframes float {
+          0%, 100% { transform: translate(0px, 0px); }
+          50% { transform: translate(30px, -30px); }
+        }
+        
+        @keyframes float-delayed {
+          0%, 100% { transform: translate(0px, 0px); }
+          50% { transform: translate(-30px, 30px); }
+        }
+        
+        @keyframes pulse-slow {
+          0%, 100% { opacity: 0.3; transform: scale(1); }
+          50% { opacity: 0.5; transform: scale(1.05); }
+        }
+        
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        
+        @keyframes fade-in-down {
+          from { opacity: 0; transform: translateY(-20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes fade-in-up {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes spin-slow {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
+        }
+        
+        .animate-float-delayed {
+          animation: float-delayed 8s ease-in-out infinite;
+        }
+        
+        .animate-pulse-slow {
+          animation: pulse-slow 4s ease-in-out infinite;
+        }
+        
+        .animate-fade-in {
+          animation: fade-in 1s ease-out;
+        }
+        
+        .animate-fade-in-down {
+          animation: fade-in-down 0.8s ease-out;
+        }
+        
+        .animate-fade-in-up {
+          animation: fade-in-up 1s ease-out;
+          animation-fill-mode: both;
+        }
+        
+        .animate-spin-slow {
+          animation: spin-slow 8s linear infinite;
         }
       `}</style>
     </section>

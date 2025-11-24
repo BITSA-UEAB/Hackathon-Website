@@ -49,6 +49,9 @@ class EventAdmin(admin.ModelAdmin):
     export_attendees.short_description = "Show total attendees for selected events"
 
     def save_model(self, request, obj, form, change):
+        # Debug log the image field status
+        image_field = form.cleaned_data.get('image', None)
+        print(f"Saving Event: {obj.title}, Image Field: {image_field}")
         if not change:
             obj.organizer = request.user
         super().save_model(request, obj, form, change)

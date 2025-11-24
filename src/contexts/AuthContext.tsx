@@ -103,7 +103,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const register = async (data: RegisterData): Promise<boolean> => {
+  const register = async (data: RegisterData): Promise<string | boolean> => {
     try {
       const trimmedName = data.name.trim();
       const nameParts = trimmedName.split(/\s+/);
@@ -150,11 +150,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         localStorage.setItem('bitsa_user', JSON.stringify(user));
 
         return true;
+      } 
+      else {
+        let errorMsg = 'Registration failed';
+        try {
+          const errorData = await response.json();
+          if (errorData) {
+            if (typeof errorData === 'string') {
+              errorMsg = errorData;
+            } else if (typeof errorData === 'object') {
+              const messages: string[] = [];
+              for (const key of Object.keys(errorData)) {
+                if (Array.isArray(errorData[key])) {
+                  messages.push(...errorData[key]);
+                } else if (typeof errorData[key] === 'string') {
+                  messages.push(errorData[key]);
+                }
+              }
+              if (messages.length > 0) {
+                errorMsg = messages.join(' ');
+              }
+            }
+          }
+        } catch (e) {
+          // ignore parse errors
+        }
+        return errorMsg;
       }
-      return false;
     } catch (error) {
       console.error('Registration error:', error);
-      return false;
+      return 'An unexpected error occurred.';
     }
   };
 

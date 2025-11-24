@@ -13,6 +13,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Loader2, Shield, Zap, Users, CheckCircle2, Eye, EyeOff, Lock, Mail, User, ArrowRight, ArrowLeft } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
+// Import bitsa logo image
+import bitsaLogo from "../../public/bitsa logo.png";
+
 const registerSchema = z.object({
   name: z.string()
     .min(2, "Name must be at least 2 characters")
@@ -39,6 +42,7 @@ type RegisterForm = z.infer<typeof registerSchema>;
 
 const RegisterPage = () => {
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -89,19 +93,22 @@ const RegisterPage = () => {
   const onSubmit = async (data: RegisterForm) => {
     setIsLoading(true);
     setError("");
+    setSuccess("");
 
     try {
-      const success = await registerUser({
+      const result = await registerUser({
         name: data.name,
         email: data.email,
         password: data.password,
         confirmPassword: data.confirmPassword,
       });
 
-      if (success) {
-        navigate("/");
+      if (result === true) {
+        setSuccess("Registration successful! Redirecting to login...");
+      } else if (typeof result === "string") {
+        setError(result);
       } else {
-        setError("Email already exists. Please use a different email or try logging in.");
+        setError("Registration failed. Please try again.");
       }
     } catch (err) {
       setError("An unexpected error occurred. Please try again later.");
@@ -187,18 +194,32 @@ const RegisterPage = () => {
       <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
         <Card className="w-full max-w-lg border-0 shadow-2xl">
           <CardHeader className="space-y-3 pb-6">
-            <div className="flex lg:hidden items-center justify-center space-x-2 mb-4">
+            {/* New header with logo on the left and title on the right */}
+            <div className="flex items-center space-x-4 mb-6">
+              <img
+                src={bitsaLogo}
+                alt="BITSA Logo"
+                className="w-12 h-12 object-contain"
+              />
+              <div>
+                <h2 className="text-3xl font-bold">Create Your Account</h2>
+                <p className="text-base text-muted-foreground">Start your journey with BITSA today</p>
+              </div>
+            </div>
+            {/* Hide existing small screen logo block because replaced by new header */}
+            {/* <div className="flex lg:hidden items-center justify-center space-x-2 mb-4">
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
                 <span className="text-white font-bold text-xl">B</span>
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                 BITSA
               </span>
-            </div>
-            <CardTitle className="text-3xl font-bold text-center">Create Your Account</CardTitle>
+            </div> */}
+            {/* Remove centered title and description since included in new header */}
+            {/* <CardTitle className="text-3xl font-bold text-center">Create Your Account</CardTitle>
             <CardDescription className="text-center text-base">
               Start your journey with BITSA today
-            </CardDescription>
+            </CardDescription> */}
           </CardHeader>
           <CardContent>
             <div className="mb-6">
@@ -211,14 +232,22 @@ const RegisterPage = () => {
               </Link>
             </div>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-              {error && (
-                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2">
-                  <AlertDescription className="flex items-center">
-                    <Lock className="w-4 h-4 mr-2" />
-                    {error}
-                  </AlertDescription>
-                </Alert>
-              )}
+            {error && (
+              <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2">
+                <AlertDescription className="flex items-center">
+                  <Lock className="w-4 h-4 mr-2" />
+                  {error}
+                </AlertDescription>
+              </Alert>
+            )}
+            {success && (
+              <Alert variant="success" className="animate-in fade-in slide-in-from-top-2">
+                <AlertDescription className="flex items-center">
+                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                  {success}
+                </AlertDescription>
+              </Alert>
+            )}
 
               <div className="space-y-2">
                 <Label htmlFor="name" className="flex items-center space-x-2">

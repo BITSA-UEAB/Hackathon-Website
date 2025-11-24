@@ -55,11 +55,11 @@ const BlogPostPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-sky-50">
         <Navbar />
         <div className="container mx-auto px-4 py-20">
           <div className="text-center py-12">
-            <p className="text-muted-foreground">Loading blog post...</p>
+            <p className="text-blue-600">Loading blog post...</p>
           </div>
         </div>
         <Footer />
@@ -69,12 +69,12 @@ const BlogPostPage = () => {
 
   if (!post) {
     return (
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-sky-50">
         <Navbar />
         <div className="container mx-auto px-4 py-20">
           <div className="text-center py-12">
-            <p className="text-muted-foreground">Blog post not found.</p>
-            <Button onClick={() => navigate('/blog')} className="mt-4">
+            <p className="text-blue-600">Blog post not found.</p>
+            <Button onClick={() => navigate('/blog')} className="mt-4 bg-blue-600 hover:bg-blue-700">
               <ArrowLeft size={16} className="mr-2" />
               Back to Blog
             </Button>
@@ -86,41 +86,41 @@ const BlogPostPage = () => {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-sky-50">
       <Navbar />
-      <article className="py-20 bg-muted/30">
+      <article className="py-20">
         <div className="container mx-auto px-4 max-w-4xl">
           <Button
             variant="ghost"
             onClick={() => navigate('/blog')}
-            className="mb-8"
+            className="mb-8 text-blue-700 hover:text-blue-900 hover:bg-blue-100"
           >
             <ArrowLeft size={16} className="mr-2" />
             Back to Blog
           </Button>
 
-          <Card className="border-border">
+          <Card className="border-blue-200 bg-white shadow-lg">
             <CardHeader className="space-y-4">
               <div className="flex items-center justify-between">
-                <Badge variant="secondary" className="text-sm">
+                <Badge variant="secondary" className="text-sm bg-blue-600 text-white hover:bg-blue-700">
                   {post.category}
                 </Badge>
-                <div className="flex items-center text-sm text-muted-foreground">
+                <div className="flex items-center text-sm text-blue-700">
                   <Clock size={14} className="mr-1" />
                   {post.read_time} min read
                 </div>
               </div>
 
-              <h1 className="text-3xl md:text-4xl font-bold leading-tight">
+              <h1 className="text-3xl md:text-4xl font-bold leading-tight text-blue-900">
                 {post.title}
               </h1>
 
-              <p className="text-lg text-muted-foreground">
+              <p className="text-lg text-blue-700">
                 {post.excerpt}
               </p>
 
               {post.image_url && (
-                <div className="aspect-video relative overflow-hidden rounded-lg mt-6">
+                <div className="aspect-video relative overflow-hidden rounded-lg mt-6 border-2 border-blue-200">
                   <img
                     src={post.image_url}
                     alt={post.title}
@@ -129,7 +129,7 @@ const BlogPostPage = () => {
                 </div>
               )}
 
-              <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-4 text-sm text-blue-600">
                 <div className="flex items-center">
                   <User size={14} className="mr-2" />
                   {post.author_name}
@@ -147,7 +147,7 @@ const BlogPostPage = () => {
               {post.tags && (
                 <div className="flex flex-wrap gap-2">
                   {post.tags.split(',').map((tag, index) => (
-                    <Badge key={index} variant="outline" className="text-xs">
+                    <Badge key={index} variant="outline" className="text-xs border-sky-400 text-sky-700 hover:bg-sky-100">
                       {tag.trim()}
                     </Badge>
                   ))}
@@ -157,7 +157,7 @@ const BlogPostPage = () => {
 
             <CardContent className="prose prose-lg max-w-none">
               <div
-                className="text-foreground leading-relaxed"
+                className="text-slate-800 leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: post.content }}
               />
             </CardContent>

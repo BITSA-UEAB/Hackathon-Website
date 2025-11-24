@@ -1,6 +1,5 @@
 import { Mail, Phone, MapPin, User, MessageCircle, Send, Clock, Users } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Link } from "react-router-dom";
 
 const Contact = () => {
   const leadership = [
@@ -27,8 +26,8 @@ const Contact = () => {
       description: "Send us a message anytime",
       contact: "bitsaclub@ueab.ac.ke",
       link: "mailto:bitsaclub@ueab.ac.ke",
-      color: "from-blue-500 to-cyan-500",
-      bgColor: "bg-gradient-to-br from-blue-50 to-cyan-50",
+      bgColor: "bg-blue-50",
+      iconColor: "bg-blue-500",
     },
     {
       icon: MessageCircle,
@@ -36,8 +35,8 @@ const Contact = () => {
       description: "Connect with us online",
       contact: "@bitsa_ueab",
       link: "#",
-      color: "from-purple-500 to-blue-500",
-      bgColor: "bg-gradient-to-br from-purple-50 to-blue-50",
+      bgColor: "bg-sky-50",
+      iconColor: "bg-sky-500",
     },
     {
       icon: MapPin,
@@ -45,8 +44,8 @@ const Contact = () => {
       description: "Find us on campus",
       contact: "BITSA Lab, UEAB",
       link: "#",
-      color: "from-cyan-500 to-blue-600",
-      bgColor: "bg-gradient-to-br from-cyan-50 to-blue-50",
+      bgColor: "bg-cyan-50",
+      iconColor: "bg-cyan-600",
     },
     {
       icon: Clock,
@@ -54,32 +53,26 @@ const Contact = () => {
       description: "Best time to reach us",
       contact: "Mon - Fri: 8AM - 5PM",
       link: "#",
-      color: "from-indigo-500 to-blue-500",
-      bgColor: "bg-gradient-to-br from-indigo-50 to-blue-50",
+      bgColor: "bg-blue-50",
+      iconColor: "bg-blue-600",
     },
   ];
 
   return (
-    <section className="py-20" style={{backgroundColor: '#e0f2fe', position: 'relative', overflow: 'hidden'}}>
-      {/* Background Elements */}
-      <div className="absolute inset-0">
-        <div className="absolute top-10 left-10 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-        <div className="absolute top-60 right-20 w-72 h-72 bg-cyan-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-20 left-1/2 w-72 h-72 bg-indigo-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
-      </div>
+    <section className="py-20 bg-sky-50">
 
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="container mx-auto px-4">
         {/* Header Section */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-blue-200 shadow-sm mb-6">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border-2 border-blue-200 shadow-sm mb-6">
             <MessageCircle className="w-4 h-4 text-blue-600" />
-            <span className="text-sm font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <span className="text-sm font-semibold text-blue-600">
               Get In Touch
             </span>
           </div>
           
-          <h2 className="text-5xl md:text-6xl font-bold mb-6">
-            Let's <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">Connect</span>
+          <h2 className="text-5xl md:text-6xl font-bold mb-6 text-gray-900">
+            Let's <span className="text-blue-600">Connect</span>
           </h2>
           
           <p className="text-xl text-gray-700 max-w-2xl mx-auto leading-relaxed">
@@ -95,10 +88,10 @@ const Contact = () => {
             return (
               <Card 
                 key={index}
-                className="border-2 border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-2xl transform hover:-translate-y-2 bg-white/80 backdrop-blur-sm"
+                className="border-2 border-gray-200 hover:border-blue-400 transition-all duration-300 hover:shadow-xl transform hover:-translate-y-2 bg-white"
               >
                 <CardHeader className="pb-4">
-                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${method.color} flex items-center justify-center mb-4`}>
+                  <div className={`w-14 h-14 rounded-2xl ${method.iconColor} flex items-center justify-center mb-4 shadow-md`}>
                     <Icon className="text-white" size={24} />
                   </div>
                   <CardTitle className="text-xl font-bold text-gray-900">{method.title}</CardTitle>
@@ -121,9 +114,9 @@ const Contact = () => {
         {/* Leadership Team */}
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-blue-200 shadow-sm mb-4">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border-2 border-blue-200 shadow-sm mb-4">
               <Users className="w-4 h-4 text-blue-600" />
-              <span className="text-sm font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <span className="text-sm font-semibold text-blue-600">
                 Meet Our Team
               </span>
             </div>
@@ -141,11 +134,11 @@ const Contact = () => {
               return (
                 <Card 
                   key={index}
-                  className="border-2 border-gray-200 hover:border-blue-400 transition-all duration-500 transform hover:-translate-y-2 bg-white/80 backdrop-blur-sm hover:shadow-2xl"
+                  className="border-2 border-gray-200 hover:border-blue-400 transition-all duration-500 transform hover:-translate-y-2 bg-white hover:shadow-xl"
                 >
                   <CardHeader>
                     <div className="flex items-center gap-6">
-                      <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
+                      <div className="w-20 h-20 rounded-2xl bg-blue-600 flex items-center justify-center shadow-lg">
                         <Icon className="text-white" size={32} />
                       </div>
                       <div className="flex-1">
@@ -157,7 +150,7 @@ const Contact = () => {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-blue-50 border border-blue-200">
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-blue-50 border-2 border-blue-200">
                       <Phone className="w-5 h-5 text-blue-600" />
                       <div>
                         <p className="text-sm text-gray-600">Phone</p>
@@ -170,13 +163,13 @@ const Contact = () => {
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-purple-50 border border-purple-200">
-                      <Mail className="w-5 h-5 text-purple-600" />
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-sky-50 border-2 border-sky-200">
+                      <Mail className="w-5 h-5 text-sky-600" />
                       <div>
                         <p className="text-sm text-gray-600">Email</p>
                         <a
                           href={`mailto:${leader.email}`}
-                          className="text-lg font-semibold text-gray-900 hover:text-purple-600 transition-colors duration-300"
+                          className="text-lg font-semibold text-gray-900 hover:text-sky-600 transition-colors duration-300"
                         >
                           {leader.email}
                         </a>
@@ -191,7 +184,7 @@ const Contact = () => {
 
         {/* Quick Action Section */}
         <div className="mt-20 text-center">
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl p-12 text-white shadow-2xl">
+          <div className="bg-blue-600 rounded-3xl p-12 text-white shadow-2xl">
             <h3 className="text-3xl md:text-4xl font-bold mb-4">
               Ready to Join BITSA?
             </h3>
@@ -199,41 +192,18 @@ const Contact = () => {
               Don't wait to start your tech journey. Connect with us today and become part of our growing community of innovators.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/register">
-                <button className="px-8 py-4 bg-white text-blue-600 rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2">
-                  <MessageCircle className="w-5 h-5" />
-                  Send Message
-                </button>
-              </Link>
-              <Link to="/register">
-                <button className="px-8 py-4 border-2 border-white text-white rounded-2xl font-bold hover:bg-white/10 transition-all duration-300 flex items-center gap-2">
-                  <Users className="w-5 h-5" />
-                  Join Community
-                </button>
-              </Link>
+              <button className="px-8 py-4 bg-white text-blue-600 rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2 mx-auto sm:mx-0">
+                <MessageCircle className="w-5 h-5" />
+                Send Message
+              </button>
+              <button className="px-8 py-4 border-2 border-white text-white rounded-2xl font-bold hover:bg-white hover:text-blue-600 transition-all duration-300 flex items-center gap-2 mx-auto sm:mx-0">
+                <Users className="w-5 h-5" />
+                Join Community
+              </button>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Custom Animation Styles */}
-      <style>{`
-        @keyframes blob {
-          0% { transform: translate(0px, 0px) scale(1); }
-          33% { transform: translate(30px, -50px) scale(1.1); }
-          66% { transform: translate(-20px, 20px) scale(0.9); }
-          100% { transform: translate(0px, 0px) scale(1); }
-        }
-        .animate-blob {
-          animation: blob 7s infinite;
-        }
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
-      `}</style>
     </section>
   );
 };

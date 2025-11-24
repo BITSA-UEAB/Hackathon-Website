@@ -1628,6 +1628,103 @@ const AdminDashboard = () => {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Edit Event Dialog */}
+        <Dialog open={editEventDialogOpen} onOpenChange={setEditEventDialogOpen}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Edit Event</DialogTitle>
+              <DialogDescription>
+                Update the event details.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="edit_event_title">Title *</Label>
+                <Input
+                  id="edit_event_title"
+                  value={editEvent.title}
+                  onChange={(e) => setEditEvent({ ...editEvent, title: e.target.value })}
+                  placeholder="Enter event title"
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit_event_description">Description *</Label>
+                <Textarea
+                  id="edit_event_description"
+                  value={editEvent.description}
+                  onChange={(e) => setEditEvent({ ...editEvent, description: e.target.value })}
+                  placeholder="Enter event description"
+                  rows={4}
+                />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit_event_date">Date *</Label>
+                  <Input
+                    id="edit_event_date"
+                    type="date"
+                    value={editEvent.date}
+                    onChange={(e) => setEditEvent({ ...editEvent, date: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit_event_time">Time *</Label>
+                  <Input
+                    id="edit_event_time"
+                    type="time"
+                    value={editEvent.time}
+                    onChange={(e) => setEditEvent({ ...editEvent, time: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit_event_location">Location *</Label>
+                  <Input
+                    id="edit_event_location"
+                    value={editEvent.location}
+                    onChange={(e) => setEditEvent({ ...editEvent, location: e.target.value })}
+                    placeholder="Enter event location"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit_event_category">Category</Label>
+                  <Select value={editEvent.category} onValueChange={(value) => setEditEvent({ ...editEvent, category: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="hackathon">Hackathon</SelectItem>
+                      <SelectItem value="workshop">Workshop</SelectItem>
+                      <SelectItem value="talk">Talk</SelectItem>
+                      <SelectItem value="meeting">Meeting</SelectItem>
+                      <SelectItem value="competition">Competition</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="edit_event_image">Image (optional)</Label>
+                <Input
+                  id="edit_event_image"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setEditEvent({ ...editEvent, image: e.target.files?.[0] || null })}
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setEditEventDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={editEventSubmit}>
+                  Update Event
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
       <Footer />
     </div>
