@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -6,7 +6,7 @@ import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/AuthContext";
@@ -25,7 +25,7 @@ const registerSchema = z.object({
     .email("Please enter a valid email address")
     .max(255, "Email must be less than 255 characters"),
   password: z.string()
-    .min(8, "Password must be at least 8 characters")
+    .min(6, "Password must be at least 6 characters")
     .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
     .regex(/[a-z]/, "Password must contain at least one lowercase letter")
     .regex(/[0-9]/, "Password must contain at least one number"),
@@ -55,6 +55,7 @@ const RegisterPage = () => {
     handleSubmit,
     watch,
     formState: { errors },
+    reset,
   } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
   });
@@ -65,18 +66,19 @@ const RegisterPage = () => {
   const calculatePasswordStrength = (pwd: string) => {
     if (!pwd) return 0;
     let strength = 0;
-    if (pwd.length >= 8) strength += 25;
-    if (pwd.length >= 12) strength += 25;
-    if (/[A-Z]/.test(pwd) && /[a-z]/.test(pwd)) strength += 25;
-    if (/[0-9]/.test(pwd)) strength += 15;
+    if (pwd.length >= 6) strength += 20;
+    if (pwd.length >= 8) strength += 20;
+    if (pwd.length >= 12) strength += 20;
+    if (/[A-Z]/.test(pwd) && /[a-z]/.test(pwd)) strength += 20;
+    if (/[0-9]/.test(pwd)) strength += 10;
     if (/[^A-Za-z0-9]/.test(pwd)) strength += 10;
     return Math.min(strength, 100);
   };
 
   // Update password strength when password changes
-  useState(() => {
+  useEffect(() => {
     setPasswordStrength(calculatePasswordStrength(password));
-  });
+  }, [password]);
 
   const getPasswordStrengthColor = () => {
     if (passwordStrength < 40) return "bg-destructive";
@@ -105,6 +107,10 @@ const RegisterPage = () => {
 
       if (result === true) {
         setSuccess("Registration successful! Redirecting to login...");
+        reset();
+        setTimeout(() => {
+          navigate("/login");
+        }, 2000);
       } else if (typeof result === "string") {
         setError(result);
       } else {
@@ -153,9 +159,9 @@ const RegisterPage = () => {
 
           <div className="space-y-6 max-w-md">
             <h1 className="text-5xl font-bold leading-tight">
-              Welcome to the Future of{" "}
+              Your Gateway to {" "}
               <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                Digital Excellence
+                Tech Excellence
               </span>
             </h1>
             <p className="text-xl text-muted-foreground">
@@ -206,20 +212,6 @@ const RegisterPage = () => {
                 <p className="text-base text-muted-foreground">Start your journey with BITSA today</p>
               </div>
             </div>
-            {/* Hide existing small screen logo block because replaced by new header */}
-            {/* <div className="flex lg:hidden items-center justify-center space-x-2 mb-4">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                <span className="text-white font-bold text-xl">B</span>
-              </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                BITSA
-              </span>
-            </div> */}
-            {/* Remove centered title and description since included in new header */}
-            {/* <CardTitle className="text-3xl font-bold text-center">Create Your Account</CardTitle>
-            <CardDescription className="text-center text-base">
-              Start your journey with BITSA today
-            </CardDescription> */}
           </CardHeader>
           <CardContent>
             <div className="mb-6">
@@ -241,9 +233,9 @@ const RegisterPage = () => {
               </Alert>
             )}
             {success && (
-              <Alert variant="success" className="animate-in fade-in slide-in-from-top-2">
+              <Alert variant="default" className="animate-in fade-in slide-in-from-top-2 text-green-600 bg-green-100 border border-green-400">
                 <AlertDescription className="flex items-center">
-                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                  <CheckCircle2 className="w-4 h-4 mr-2 text-green-600" />
                   {success}
                 </AlertDescription>
               </Alert>

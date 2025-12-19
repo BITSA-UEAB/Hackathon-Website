@@ -21,6 +21,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/auth/', include('accounts.urls')),
@@ -30,6 +31,7 @@ urlpatterns = [
     path('api/blogs/', include('blogs.urls')),
     path('events/', include('events.urls')),
     path('api/events/', include('events.urls')),
+    path('', include('about.urls')),  # About app URLs
 ]
 
 # Serve media files from MEDIA_URL -> MEDIA_ROOT for testing environments.

@@ -1,6 +1,219 @@
-import { Code, Lightbulb, Users2, Trophy, Target, Heart, Sparkles, Rocket, Calendar, Star } from "lucide-react";
+
+import { useState, useEffect } from "react";
+import { Code, Lightbulb, Users2, Trophy, Target, Heart, Sparkles, Rocket, Star, Loader2 } from "lucide-react";
+
+interface Leadership {
+  id: number;
+  name: string;
+  position: string;
+  department: string;
+  student_id: string;
+  image_url: string | null;
+  leadership_type: string;
+  order: number;
+}
+
+const API_BASE_URL = "http://localhost:8000";
 
 const About = () => {
+  const [topLeaders, setTopLeaders] = useState<Leadership[]>([]);
+  const [studentLeaders, setStudentLeaders] = useState<Leadership[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Function to fetch leadership data
+  const fetchLeadershipData = async (type: 'top' | 'student') => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/leadership/?type=${type}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch ${type} leadership`);
+      }
+      const data = await response.json();
+      return data;
+    } catch (err) {
+      console.error(`Error fetching ${type} leadership:`, err);
+      throw err;
+    }
+  };
+
+  // Load leadership data on component mount
+  useEffect(() => {
+    const loadLeadershipData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const [topData, studentData] = await Promise.all([
+          fetchLeadershipData('top'),
+          fetchLeadershipData('student')
+        ]);
+
+        setTopLeaders(topData);
+        setStudentLeaders(studentData);
+      } catch (err) {
+        setError("Failed to load leadership data. Please try again later.");
+        console.error("Error loading leadership data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadLeadershipData();
+  }, []);
+
+  // Helper function to get initials from name
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word.charAt(0))
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  // Helper function to get random color for fallback avatar
+  const getAvatarColor = (name: string) => {
+    const colors = [
+      'bg-blue-600', 'bg-slate-600', 'bg-emerald-600', 'bg-purple-600',
+      'bg-amber-600', 'bg-rose-600', 'bg-indigo-600', 'bg-teal-600'
+    ];
+    const index = name.charCodeAt(0) % colors.length;
+    return colors[index];
+  };
+
+
+  // Loading component
+  const LoadingCard = ({ type }: { type: 'top' | 'student' }) => (
+    <div className={`bg-white rounded-2xl p-4 border-2 border-slate-300 shadow-md animate-pulse`}>
+      <div className="flex flex-col items-center text-center">
+        <div className={`rounded-full bg-slate-300 flex items-center justify-center mb-3 ${
+          type === 'top' ? 'w-16 h-16' : 'w-12 h-12'
+        }`}>
+          <Loader2 className={`${type === 'top' ? 'w-8 h-8' : 'w-6 h-6'} text-slate-500 animate-spin`} />
+        </div>
+        <div className="space-y-2">
+          <div className="h-4 bg-slate-300 rounded w-20"></div>
+          <div className="h-3 bg-slate-200 rounded w-16"></div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Leader card component for displaying real leadership data
+  const LeaderCard = ({ leader, type, getInitials, getAvatarColor }: {
+    leader: Leadership;
+    type: 'top' | 'student';
+    getInitials: (name: string) => string;
+    getAvatarColor: (name: string) => string;
+  }) => (
+    <div className="bg-white rounded-2xl p-5 border-2 border-slate-300 shadow-md hover:shadow-lg transition-shadow duration-300">
+      <div className="flex flex-col items-center text-center">
+        {/* Profile Image with Fallback */}
+        <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-3 shadow-md ${
+          leader.image_url ? 'bg-transparent' : getAvatarColor(leader.name)
+        }`}>
+          {leader.image_url ? (
+            <img 
+              src={leader.image_url} 
+              alt={leader.name}
+              className="w-full h-full rounded-full object-cover"
+              onError={(e) => {
+                // Fallback to initials if image fails to load
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                const parent = target.parentElement;
+                if (parent) {
+                  parent.innerHTML = `<span class="text-white font-bold text-lg">${getInitials(leader.name)}</span>`;
+                  parent.className = `w-16 h-16 rounded-full flex items-center justify-center mb-3 shadow-md ${getAvatarColor(leader.name)}`;
+                }
+              }}
+            />
+          ) : (
+            <span className="text-white font-bold text-lg">
+              {getInitials(leader.name)}
+            </span>
+          )}
+        </div>
+        
+        {/* Name - Fixed to show only person's name */}
+        <h4 className="text-lg font-bold text-slate-900 mb-1">
+          {leader.name}
+        </h4>
+        
+        {/* Position as subtitle */}
+        <p className="text-sm font-semibold text-slate-700 mb-1">
+          {leader.position}
+        </p>
+        
+        {/* Department */}
+        <p className="text-xs text-slate-600">
+          {leader.department}
+        </p>
+      </div>
+    </div>
+  );
+
+
+  // Position placeholder card component
+  const LeaderPositionCard = ({ title, position, type, placeholder }: {
+    title: string;
+    position: string;
+    type: 'top' | 'student';
+    placeholder: string;
+  }) => (
+    <div className={`bg-white rounded-2xl border-2 border-slate-300 shadow-md ${
+      type === 'top' ? 'p-5' : 'p-4'
+    }`}>
+      <div className="flex flex-col items-center text-center">
+        {/* Placeholder Avatar with Camera Icon */}
+        <div className={`rounded-full bg-slate-300 flex items-center justify-center mb-3 shadow-md ${
+          type === 'top' ? 'w-16 h-16' : 'w-12 h-12'
+        }`}>
+          <svg 
+            className={`text-slate-500 ${type === 'top' ? 'w-6 h-6' : 'w-4 h-4'}`} 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              strokeWidth={2} 
+              d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" 
+            />
+            <path 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              strokeWidth={2} 
+              d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" 
+            />
+          </svg>
+        </div>
+        
+        {/* Position Title */}
+        <h4 className={`font-bold text-slate-900 mb-1 ${
+          type === 'top' ? 'text-lg' : 'text-sm'
+        }`}>
+          {title}
+        </h4>
+        
+        {/* Position subtitle */}
+        <p className={`font-semibold text-slate-700 mb-1 ${
+          type === 'top' ? 'text-sm' : 'text-xs'
+        }`}>
+          {position}
+        </p>
+        
+        {/* Placeholder text */}
+        <p className={`text-slate-500 ${
+          type === 'top' ? 'text-xs' : 'text-xs'
+        }`}>
+          {placeholder}
+        </p>
+      </div>
+    </div>
+  );
+
   const values = [
     {
       icon: Code,
@@ -34,13 +247,6 @@ const About = () => {
       bgColor: "bg-slate-100",
       borderColor: "border-slate-300"
     },
-  ];
-
-  const stats = [
-    { number: "500+", label: "Active Members", icon: Users2 },
-    { number: "50+", label: "Events Yearly", icon: Calendar },
-    { number: "100+", label: "Projects", icon: Code },
-    { number: "4.9/5", label: "Member Rating", icon: Star }
   ];
 
   return (
@@ -77,24 +283,164 @@ const About = () => {
           </p>
         </div>
 
-        {/* Stats Section */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-          {stats.map((stat, index) => {
-            const Icon = stat.icon;
-            return (
-              <div
-                key={index}
-                className="text-center p-5 rounded-2xl bg-white border border-slate-300 hover:border-slate-400 transition-all duration-300 hover:shadow-lg transform hover:scale-105 animate-fade-in-up"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <div className="w-11 h-11 rounded-xl bg-slate-600 flex items-center justify-center mb-3 mx-auto">
-                  <Icon className="text-white" size={22} />
-                </div>
-                <div className="text-xl md:text-2xl font-bold text-slate-900 mb-1">{stat.number}</div>
-                <div className="text-sm text-slate-600 font-medium">{stat.label}</div>
+
+
+        {/* Top Leadership Section */}
+        <div className="mb-16">
+          <div className="text-center mb-8">
+            <h3 className="text-3xl font-bold text-slate-900 mb-2">Our Top Leaders</h3>
+            <p className="text-slate-700">Guiding BITSA with Vision and Excellence</p>
+          </div>
+          
+          {error && (
+            <div className="text-center mb-8">
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 max-w-md mx-auto">
+                <p className="text-amber-600 text-sm">⚠️ Unable to load live data. Showing default positions.</p>
               </div>
-            );
-          })}
+            </div>
+          )}
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            {loading ? (
+              // Loading skeletons for top leaders
+              Array.from({ length: 2 }).map((_, index) => (
+                <LoadingCard key={index} type="top" />
+              ))
+            ) : topLeaders.length > 0 ? (
+              // Show real data when available
+              topLeaders.map((leader) => (
+                <LeaderCard key={leader.id} leader={leader} type="top" getInitials={getInitials} getAvatarColor={getAvatarColor} />
+              ))
+            ) : (
+              // Show position placeholders when no data
+              <>
+                <LeaderPositionCard 
+                  title="BITSA Chair" 
+                  position="BITSA Chair" 
+                  type="top" 
+                  placeholder="Awaiting Appointment"
+                />
+                <LeaderPositionCard 
+                  title="BITSA Patron" 
+                  position="BITSA Patron" 
+                  type="top" 
+                  placeholder="Awaiting Appointment"
+                />
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Student Leaders Section */}
+        <div className="mb-16">
+          <div className="text-center mb-8">
+            <h3 className="text-3xl font-bold text-slate-900 mb-2">BITSA Leaders 2025</h3>
+            <p className="text-slate-700">Our Dedicated Student Leadership Team</p>
+          </div>
+          
+
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Loading skeletons for student leaders */}
+              {Array.from({ length: 6 }).map((_, index) => (
+                <LoadingCard key={index} type="student" />
+              ))}
+            </div>
+
+          ) : studentLeaders.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {studentLeaders.map((leader) => (
+                <div
+                  key={leader.id}
+                  className="bg-white rounded-xl p-4 border-2 border-slate-300 shadow-md hover:shadow-lg transition-shadow duration-300"
+                >
+                  <div className="flex flex-col items-center text-center">
+                    {/* Profile Image with Fallback */}
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 shadow-sm ${
+                      leader.image_url ? 'bg-transparent' : getAvatarColor(leader.name)
+                    }`}>
+                      {leader.image_url ? (
+                        <img 
+                          src={leader.image_url} 
+                          alt={leader.name}
+                          className="w-full h-full rounded-full object-cover"
+                          onError={(e) => {
+                            // Fallback to initials if image fails to load
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            const parent = target.parentElement;
+                            if (parent) {
+                              parent.innerHTML = `<span class="text-white font-bold text-sm">${getInitials(leader.name)}</span>`;
+                              parent.className = `w-12 h-12 rounded-full flex items-center justify-center mb-3 shadow-sm ${getAvatarColor(leader.name)}`;
+                            }
+                          }}
+                        />
+                      ) : (
+                        <span className="text-white font-bold text-sm">
+                          {getInitials(leader.name)}
+                        </span>
+                      )}
+                    </div>
+                    
+                    {/* Name - Fixed to show only person's name */}
+                    <h4 className="text-sm font-bold text-slate-900 mb-1">
+                      {leader.name}
+                    </h4>
+                    
+                    {/* Position as subtitle */}
+                    <p className="text-xs font-semibold text-slate-700 mb-1">
+                      {leader.position}
+                    </p>
+                    
+                    {/* Department */}
+                    <p className="text-xs text-slate-600">
+                      {leader.department}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            // Show position placeholders when no data
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <LeaderPositionCard 
+                title="Vice Chair" 
+                position="Vice Chair" 
+                type="student" 
+                placeholder="Awaiting Appointment"
+              />
+              <LeaderPositionCard 
+                title="Secretary" 
+                position="Secretary" 
+                type="student" 
+                placeholder="Awaiting Appointment"
+              />
+              <LeaderPositionCard 
+                title="Treasurer" 
+                position="Treasurer" 
+                type="student" 
+                placeholder="Awaiting Appointment"
+              />
+              <LeaderPositionCard 
+                title="Program Coordinator" 
+                position="Program Coordinator" 
+                type="student" 
+                placeholder="Awaiting Appointment"
+              />
+              <LeaderPositionCard 
+                title="Event Coordinator" 
+                position="Event Coordinator" 
+                type="student" 
+                placeholder="Awaiting Appointment"
+              />
+              <LeaderPositionCard 
+                title="Public Relations" 
+                position="Public Relations" 
+                type="student" 
+                placeholder="Awaiting Appointment"
+              />
+            </div>
+          )}
         </div>
 
         {/* Values Grid */}

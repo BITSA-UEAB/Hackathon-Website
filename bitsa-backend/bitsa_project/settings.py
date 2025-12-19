@@ -27,6 +27,7 @@ ALLOWED_HOSTS = ['*']
 # APPLICATIONS
 # ===========================
 
+
 INSTALLED_APPS = [
     # Django default apps
     'django.contrib.admin',
@@ -46,6 +47,7 @@ INSTALLED_APPS = [
     'gallery',
     'blogs',
     'events',
+    'about',
 ]
 
 

@@ -112,7 +112,7 @@ const LoginPage = () => {
             {/* Main Heading */}
             <div className="mb-12">
               <h1 className="text-5xl font-bold mb-4 leading-tight">
-                Welcome to the Future of Digital Finance
+                Your Gateway to Tech Excellence
               </h1>
               <p className="text-xl text-primary-foreground/90">
                 Secure, fast, and reliable platform for all your digital asset needs

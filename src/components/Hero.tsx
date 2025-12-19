@@ -1,17 +1,27 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Users, Calendar, BookOpen, Star, Zap, Shield, Globe, Award, TrendingUp, Code, Briefcase } from "lucide-react";
+import axios from "axios";
 
-const Button = ({ children, className, variant, size, onClick, ...props }) => (
+
+const Button = ({ children, className, variant = "default", size, onClick, ...props }) => (
   <button onClick={onClick} className={`px-6 py-3 rounded-lg font-semibold transition-all ${className}`} {...props}>
     {children}
   </button>
 );
 
+
 const Hero = () => {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
+  const [stats, setStats] = useState({
+    active_members: 500,
+    annual_events: 50,
+    projects: 100
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const slides = [
     {
@@ -42,15 +52,40 @@ const Hero = () => {
     return () => clearInterval(interval);
   }, [slides.length]);
 
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await axios.get('http://localhost:8000/api/auth/stats/');
+        setStats(response.data);
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+        setError('Failed to fetch stats');
+        // Fallback to default values if API fails
+        setStats({
+          active_members: 500,
+          annual_events: 50,
+          projects: 100
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
+
   // Counter Animation Hook
   const useCounter = (end, duration = 2000, start = 0) => {
     const [count, setCount] = useState(start);
     const countRef = useRef(start);
-    const hasAnimated = useRef(false);
 
     useEffect(() => {
-      if (hasAnimated.current) return;
-      hasAnimated.current = true;
+      // Reset animation when end value changes
+      countRef.current = start;
+      setCount(start);
 
       const increment = end / (duration / 16);
       const timer = setInterval(() => {
@@ -64,15 +99,14 @@ const Hero = () => {
       }, 16);
 
       return () => clearInterval(timer);
-    }, [end, duration]);
+    }, [end, duration, start]);
 
     return count;
   };
 
-  const membersCount = useCounter(500, 2000);
-  const eventsCount = useCounter(50, 2000);
-  const projectsCount = useCounter(100, 2000);
-  const satisfactionCount = useCounter(95, 2000);
+  const membersCount = useCounter(stats.active_members, 2000);
+  const eventsCount = useCounter(stats.annual_events, 2000);
+  const projectsCount = useCounter(stats.projects, 2000);
 
   return (
     <section className="min-h-screen pt-16 flex items-center bg-gradient-to-r from-slate-50 to-slate-100">
@@ -88,33 +122,60 @@ const Hero = () => {
             Connect, Learn, and <span className="font-semibold text-slate-800">Innovate Together</span>
           </p>
 
+
           {/* Stats Bar with Animated Counters */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 max-w-2xl mx-auto mb-8 sm:mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 max-w-2xl mx-auto mb-8 sm:mb-12">
             <div className="text-center p-3 sm:p-4 rounded-lg bg-white border border-slate-300 hover:shadow-lg hover:scale-105 transition-all duration-300 group">
               <div className="text-xl sm:text-2xl font-bold text-slate-700 mb-1 group-hover:text-blue-600 transition-colors">
-                {membersCount}+
+                {loading ? (
+                  <div className="animate-pulse bg-slate-200 h-6 w-16 mx-auto rounded"></div>
+                ) : (
+                  <>
+                    {membersCount}+
+                    {error && <span className="text-xs text-red-500 ml-1">⚠</span>}
+                  </>
+                )}
               </div>
               <div className="text-xs sm:text-sm text-slate-600">Active Members</div>
             </div>
             <div className="text-center p-3 sm:p-4 rounded-lg bg-white border border-slate-300 hover:shadow-lg hover:scale-105 transition-all duration-300 group">
               <div className="text-xl sm:text-2xl font-bold text-slate-700 mb-1 group-hover:text-blue-600 transition-colors">
-                {eventsCount}+
+                {loading ? (
+                  <div className="animate-pulse bg-slate-200 h-6 w-16 mx-auto rounded"></div>
+                ) : (
+                  <>
+                    {eventsCount}+
+                    {error && <span className="text-xs text-red-500 ml-1">⚠</span>}
+                  </>
+                )}
               </div>
               <div className="text-xs sm:text-sm text-slate-600">Annual Events</div>
             </div>
             <div className="text-center p-3 sm:p-4 rounded-lg bg-white border border-slate-300 hover:shadow-lg hover:scale-105 transition-all duration-300 group">
               <div className="text-xl sm:text-2xl font-bold text-slate-700 mb-1 group-hover:text-blue-600 transition-colors">
-                {projectsCount}+
+                {loading ? (
+                  <div className="animate-pulse bg-slate-200 h-6 w-16 mx-auto rounded"></div>
+                ) : (
+                  <>
+                    {projectsCount}+
+                    {error && <span className="text-xs text-red-500 ml-1">⚠</span>}
+                  </>
+                )}
               </div>
               <div className="text-xs sm:text-sm text-slate-600">Projects</div>
             </div>
-            <div className="text-center p-3 sm:p-4 rounded-lg bg-white border border-slate-300 hover:shadow-lg hover:scale-105 transition-all duration-300 group">
-              <div className="text-xl sm:text-2xl font-bold text-slate-700 mb-1 group-hover:text-blue-600 transition-colors">
-                {satisfactionCount}%
-              </div>
-              <div className="text-xs sm:text-sm text-slate-600">Satisfaction</div>
-            </div>
           </div>
+          
+          {/* Error Message */}
+          {error && (
+            <div className="max-w-2xl mx-auto mb-8">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center">
+                <p className="text-xs sm:text-sm text-yellow-800">
+                  Showing demo data. Connect to backend to see live statistics.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Middle Section - Slideshow and Content Side by Side */}
