@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Calendar, MapPin, Clock, ArrowRight, Sparkles } from "lucide-react";
+import { Calendar, MapPin, Clock, ArrowRight, Sparkles, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 interface Event {
@@ -23,6 +23,7 @@ const Events = () => {
   const navigate = useNavigate();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
 
   useEffect(() => {
     fetchEvents();
@@ -47,8 +48,7 @@ const Events = () => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
+      month: 'short',
       day: 'numeric'
     });
   };
@@ -58,12 +58,12 @@ const Events = () => {
     const hour = parseInt(hours);
     const ampm = hour >= 12 ? 'PM' : 'AM';
     const hour12 = hour % 12 || 12;
-    return `${hour12}:${minutes} ${ampm}`;
+    return `${hour12}:${minutes}${ampm}`;
   };
 
   if (loading) {
     return (
-      <section className="min-h-screen py-20 bg-slate-50">
+      <section className="min-h-screen py-12 bg-slate-50">
         <div className="container mx-auto px-4 text-center">
           <div className="flex items-center justify-center gap-3">
             <Sparkles className="animate-pulse text-blue-600" size={24} />
@@ -75,80 +75,90 @@ const Events = () => {
   }
 
   return (
-    <section className="min-h-screen py-20 bg-slate-50">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 rounded-full bg-blue-50 border border-blue-200">
-            <Sparkles className="text-blue-600" size={18} />
-            <span className="text-sm font-medium text-blue-600">Discover & Connect</span>
+    <section className="min-h-screen py-12 bg-slate-50">
+      <div className="container mx-auto px-4 max-w-7xl">
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 mb-4 rounded-full bg-blue-50 border border-blue-200">
+            <Sparkles className="text-blue-600" size={16} />
+            <span className="text-xs font-medium text-blue-600">Discover & Connect</span>
           </div>
           
-          <h2 className="text-5xl md:text-6xl font-bold mb-6 text-blue-900">
+          <h2 className="text-3xl md:text-4xl font-bold mb-3 text-blue-900">
             Upcoming Events
           </h2>
-          <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            Join us for exciting workshops, hackathons, and networking opportunities designed to enhance your skills and connect with fellow tech enthusiasts.
+          <p className="text-sm text-slate-600 max-w-2xl mx-auto">
+            Join exciting workshops, hackathons, and networking opportunities designed to enhance your skills.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {events.map((event) => (
             <Card 
               key={event.id}
-              className="group h-full bg-white border-2 border-slate-200 transition-all duration-300 hover:border-blue-400 hover:shadow-xl"
+              className="group bg-white border-2 border-slate-200 transition-all duration-300 hover:border-blue-400 hover:shadow-2xl flex flex-col overflow-hidden relative"
+              onMouseEnter={() => setHoveredCard(event.id)}
+              onMouseLeave={() => setHoveredCard(null)}
             >
-              <CardHeader>
+              <CardHeader className="p-0 relative">
                 {event.image && (
-                  <div className="w-full h-48 mb-4 overflow-hidden rounded-lg bg-slate-100">
+                  <div 
+                    className="w-full h-40 overflow-hidden bg-slate-100 relative"
+                    onMouseEnter={() => setHoveredCard(event.id)}
+                    onMouseLeave={() => setHoveredCard(null)}
+                  >
                     <img
                       src={event.image}
                       alt={event.title}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
+                    <div className="absolute top-3 right-3 flex gap-2">
+                      <Badge className="px-2 py-0.5 text-xs font-medium bg-white/95 text-blue-700 border border-blue-200 backdrop-blur-sm">
+                        {event.category.charAt(0).toUpperCase() + event.category.slice(1)}
+                      </Badge>
+                    </div>
+                    
+                    {/* Description overlay on hover - only on photo */}
+                    <div className={`absolute inset-0 bg-blue-900/95 backdrop-blur-sm transition-opacity duration-300 flex items-center justify-center p-4 ${hoveredCard === event.id ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                      <p className="text-white text-xs text-center line-clamp-5">
+                        {event.description}
+                      </p>
+                    </div>
                   </div>
                 )}
-                <div className="flex items-start justify-between mb-3">
-                  <Badge className="px-3 py-1 font-medium bg-blue-100 text-blue-700 border border-blue-200">
-                    {event.category.charAt(0).toUpperCase() + event.category.slice(1)}
-                  </Badge>
-                  <Badge variant="outline" className="border-blue-300 text-blue-700 font-medium">
+                
+                {/* Date, Time, Venue below photo */}
+                <div className="px-4 py-3 bg-slate-50 border-b border-slate-200">
+                  <div className="flex items-center justify-between text-xs gap-2">
+                    <div className="flex items-center gap-1.5 text-slate-700">
+                      <Calendar size={12} className="text-blue-600" />
+                      <span className="font-medium">{formatDate(event.date)}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-slate-700">
+                      <Clock size={12} className="text-blue-600" />
+                      <span className="font-medium">{formatTime(event.time)}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-slate-700">
+                      <MapPin size={12} className="text-blue-600" />
+                      <span className="font-medium truncate max-w-[80px]">{event.location}</span>
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+              
+              <CardContent className="p-4 flex-grow">
+                <div className="flex items-start justify-between">
+                  <CardTitle className="text-base font-bold text-slate-900 group-hover:text-blue-600 transition-colors duration-300 line-clamp-2 flex-1">
+                    {event.title}
+                  </CardTitle>
+                  <Badge variant="outline" className="ml-2 px-1.5 py-0.5 text-xs border-blue-300 text-blue-700 font-medium shrink-0">
                     {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
                   </Badge>
                 </div>
-                <CardTitle className="text-xl mb-2 text-slate-900 group-hover:text-blue-600 transition-colors duration-300">
-                  {event.title}
-                </CardTitle>
-                <CardDescription className="line-clamp-2 text-slate-600">
-                  {event.description}
-                </CardDescription>
-              </CardHeader>
-              
-              <CardContent className="space-y-3">
-                <div className="flex items-center text-sm gap-2 p-2 rounded-lg bg-slate-50 group-hover:bg-blue-50 transition-colors duration-300">
-                  <div className="p-1.5 rounded-md bg-blue-100">
-                    <Calendar size={16} className="text-blue-600" />
-                  </div>
-                  <span className="text-slate-700">{formatDate(event.date)}</span>
-                </div>
-                
-                <div className="flex items-center text-sm gap-2 p-2 rounded-lg bg-slate-50 group-hover:bg-blue-50 transition-colors duration-300">
-                  <div className="p-1.5 rounded-md bg-blue-100">
-                    <Clock size={16} className="text-blue-600" />
-                  </div>
-                  <span className="text-slate-700">{formatTime(event.time)}</span>
-                </div>
-                
-                <div className="flex items-center text-sm gap-2 p-2 rounded-lg bg-slate-50 group-hover:bg-blue-50 transition-colors duration-300">
-                  <div className="p-1.5 rounded-md bg-blue-100">
-                    <MapPin size={16} className="text-blue-600" />
-                  </div>
-                  <span className="text-slate-700">{event.location}</span>
-                </div>
               </CardContent>
               
-              <CardFooter>
+              <CardFooter className="p-4 pt-0">
                 <Button
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors duration-300"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium transition-all duration-300 h-9 shadow-sm hover:shadow-md"
                   onClick={async () => {
                     const user = JSON.parse(localStorage.getItem('bitsa_user') || 'null');
                     if (!user || user.role !== 'student') {
@@ -176,9 +186,9 @@ const Events = () => {
                     }
                   }}
                 >
-                  <span className="flex items-center justify-center gap-2">
+                  <span className="flex items-center justify-center gap-1.5">
                     Confirm Attendance
-                    <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
+                    <ArrowRight size={14} className="transition-transform duration-300 group-hover:translate-x-1" />
                   </span>
                 </Button>
               </CardFooter>
@@ -187,12 +197,12 @@ const Events = () => {
         </div>
 
         {events.length === 0 && (
-          <div className="text-center py-20">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full mb-6 bg-blue-100">
-              <Calendar className="text-blue-600" size={32} />
+          <div className="text-center py-16">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 bg-blue-100">
+              <Calendar className="text-blue-600" size={28} />
             </div>
-            <h3 className="text-2xl font-bold mb-2 text-slate-900">No Events Available</h3>
-            <p className="text-slate-600 max-w-md mx-auto">
+            <h3 className="text-xl font-bold mb-2 text-slate-900">No Events Available</h3>
+            <p className="text-sm text-slate-600 max-w-md mx-auto">
               Check back soon for exciting upcoming events and opportunities to connect with the community.
             </p>
           </div>
