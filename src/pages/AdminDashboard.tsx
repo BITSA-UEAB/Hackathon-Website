@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
@@ -15,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Users, FileText, Calendar, Image, BarChart3, Settings, UserPlus, Ban, CheckCircle, Trash2, Edit, Plus, Crown } from "lucide-react";
 import { toast } from "sonner";
+import { Toaster } from "sonner";
 
 interface User {
   id: number;
@@ -72,12 +74,12 @@ interface Event {
 
 
 
+
 interface Leadership {
   id: number;
   name: string;
   position: string;
   image_url: string | null;
-  department: string;
   student_id: string;
   leadership_type: string;
   is_active: boolean;
@@ -159,45 +161,45 @@ const AdminDashboard = () => {
 
 
 
+
+
+
+
+
   const [leadership, setLeadership] = useState<Leadership[]>([]);
-  const [addLeadershipDialogOpen, setAddLeadershipDialogOpen] = useState(false);
   const [editLeadershipDialogOpen, setEditLeadershipDialogOpen] = useState(false);
   const [selectedLeadership, setSelectedLeadership] = useState<Leadership | null>(null);
 
 
-  const [newLeadership, setNewLeadership] = useState({
-    name: '',
-    position: '',
-    department: '',
-    student_id: '',
-    leadership_type: 'student',
-    image: null as File | null
-  });
 
   const [editLeadership, setEditLeadership] = useState({
     name: '',
     position: '',
-    department: '',
     student_id: '',
     leadership_type: 'student',
     image: null as File | null
   });
 
+  // Helper function to get leadership member by position
+  const getLeadershipMemberByPosition = (position: string) => {
+    return leadership.find(member => member.position === position);
+  };
 
 
-  // Predefined positions with leadership type mapping
+
+  // Predefined positions (fixed, not typed)
   const leadershipPositions = [
-    { value: 'CHAIR', label: 'CHAIR', type: 'top' },
-    { value: 'PATRON', label: 'PATRON', type: 'top' },
-    { value: 'PRESIDENT', label: 'PRESIDENT', type: 'student' },
-    { value: 'VICE PRESIDENT', label: 'VICE PRESIDENT', type: 'student' },
-    { value: 'TREASURER', label: 'TREASURER', type: 'student' },
-    { value: 'SECRETARY', label: 'SECRETARY', type: 'student' },
-    { value: 'CHAPLAIN', label: 'CHAPLAIN', type: 'student' },
-    { value: 'NETWORKING REPRESENTATIVE', label: 'NETWORKING REPRESENTATIVE', type: 'student' },
-    { value: 'SOFTWARE ENGINEERING REPRESENTATIVE', label: 'SOFTWARE ENGINEERING REPRESENTATIVE', type: 'student' },
-    { value: 'BBIT REPRESENTATIVE', label: 'BBIT REPRESENTATIVE', type: 'student' },
-    { value: 'PUBLIC RELATION OFFICER', label: 'PUBLIC RELATION OFFICER', type: 'student' },
+    'BITSA CHAIR',
+    'PATRON',
+    'PRESIDENT',
+    'VICE PRESIDENT',
+    'TREASURER',
+    'SECRETARY',
+    'CHAPLAIN',
+    'NETWORKING REPRESENTATIVE',
+    'SOFTWARE ENGINEERING REPRESENTATIVE',
+    'BBIT REPRESENTATIVE',
+    'PUBLIC RELATION OFFICER'
   ];
 
   // Check if position is Chair or Patron (top leadership)
@@ -788,66 +790,15 @@ const AdminDashboard = () => {
 
 
 
-  const addLeadership = async () => {
-    if (!newLeadership.name || !newLeadership.position) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
 
-    // Check if position already exists (except for Chair/Patron which can have one each)
-    const positionExists = leadership.some(member => 
-      member.position === newLeadership.position && 
-      !isTopLeadership(newLeadership.position)
-    );
 
-    if (positionExists) {
-      toast.error(`A member already holds the position of ${newLeadership.position}`);
-      return;
-    }
 
-    const formData = new FormData();
-    formData.append('name', newLeadership.name);
-    formData.append('position', newLeadership.position);
-    if (newLeadership.image) {
-      formData.append('image', newLeadership.image);
-    }
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/about/leadership/`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-        },
-        body: formData,
-      });
-
-      if (response.ok) {
-        toast.success('Leadership member added successfully');
-        setAddLeadershipDialogOpen(false);
-        setNewLeadership({
-          name: '',
-          position: '',
-          department: '',
-          student_id: '',
-          leadership_type: 'student',
-          image: null
-        });
-        fetchLeadership();
-      } else {
-        const error = await response.json();
-        toast.error(error.error || 'Failed to add leadership member');
-      }
-    } catch (error) {
-      toast.error('Error adding leadership member');
-    }
-  };
 
   const openEditLeadershipDialog = (leadership: Leadership) => {
     setSelectedLeadership(leadership);
     setEditLeadership({
       name: leadership.name,
       position: leadership.position,
-      department: leadership.department,
       student_id: leadership.student_id,
       leadership_type: leadership.leadership_type,
       image: null
@@ -855,8 +806,10 @@ const AdminDashboard = () => {
     setEditLeadershipDialogOpen(true);
   };
 
+
+
   const editLeadershipSubmit = async () => {
-    if (!selectedLeadership || !editLeadership.name || !editLeadership.position || !editLeadership.department || !editLeadership.student_id) {
+    if (!selectedLeadership || !editLeadership.name || !editLeadership.position) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -864,8 +817,9 @@ const AdminDashboard = () => {
     const formData = new FormData();
     formData.append('name', editLeadership.name);
     formData.append('position', editLeadership.position);
-    formData.append('department', editLeadership.department);
-    formData.append('student_id', editLeadership.student_id);
+    if (editLeadership.student_id) {
+      formData.append('student_id', editLeadership.student_id);
+    }
     formData.append('leadership_type', editLeadership.leadership_type);
     if (editLeadership.image) {
       formData.append('image', editLeadership.image);
@@ -887,9 +841,8 @@ const AdminDashboard = () => {
         setEditLeadership({
           name: '',
           position: '',
-          department: '',
           student_id: '',
-          leadership_type: 'executive',
+          leadership_type: 'student',
           image: null
         });
         fetchLeadership();
@@ -1222,143 +1175,88 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
+
           <TabsContent value="leadership" className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Leadership Management</CardTitle>
-                <CardDescription>Manage BITSA leadership team members</CardDescription>
+                <CardDescription>Manage BITSA leadership team members - Update existing positions</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex justify-between items-center mb-4">
-                  <div>
-                    <h3 className="text-lg font-medium">All Leadership Members</h3>
-                    <p className="text-sm text-muted-foreground">Manage leadership team and their information</p>
-                  </div>
-                  <Dialog open={addLeadershipDialogOpen} onOpenChange={setAddLeadershipDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button>
-                        <Crown className="h-4 w-4 mr-2" />
-                        Add Leadership Member
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                      <DialogHeader>
-                        <DialogTitle>Add Leadership Member</DialogTitle>
-                        <DialogDescription>
-                          Add a new member to the BITSA leadership team.
-                        </DialogDescription>
-                      </DialogHeader>
-
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="leadership_name">Name *</Label>
-                            <Input
-                              id="leadership_name"
-                              value={newLeadership.name}
-                              onChange={(e) => setNewLeadership({ ...newLeadership, name: e.target.value })}
-                              placeholder="Enter full name"
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="leadership_position">Position *</Label>
-                            <Input
-                              id="leadership_position"
-                              value={newLeadership.position}
-                              onChange={(e) => setNewLeadership({ ...newLeadership, position: e.target.value })}
-                              placeholder="Enter position"
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <Label htmlFor="leadership_image">Image (optional)</Label>
-                          <Input
-                            id="leadership_image"
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => setNewLeadership({ ...newLeadership, image: e.target.files?.[0] || null })}
-                          />
-                        </div>
-                        <div className="flex justify-end gap-2">
-                          <Button variant="outline" onClick={() => setAddLeadershipDialogOpen(false)}>
-                            Cancel
-                          </Button>
-                          <Button onClick={addLeadership}>
-                            Add Member
-                          </Button>
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-
                 {loading ? (
                   <p>Loading leadership...</p>
                 ) : (
-
                   <Table>
+
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Photo</TableHead>
-                        <TableHead>Name</TableHead>
                         <TableHead>Position</TableHead>
-                        <TableHead>Actions</TableHead>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Student ID</TableHead>
+                        <TableHead>Photo</TableHead>
+                        <TableHead>Action</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {leadership.map((member) => (
-                        <TableRow key={member.id}>
-                          <TableCell>
-                            <div className="w-12 h-12 rounded-full overflow-hidden bg-muted flex items-center justify-center">
-                              {member.image_url ? (
-                                <img 
-                                  src={member.image_url} 
-                                  alt={member.name}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <Crown className="h-6 w-6 text-muted-foreground" />
+                      {leadershipPositions.map((position) => {
+                        const member = getLeadershipMemberByPosition(position);
+                        return (
+                          <TableRow key={position}>
+                            <TableCell className="font-medium">{position}</TableCell>
+                            <TableCell>
+                              {member ? member.name : (
+                                <span className="text-muted-foreground italic">Not assigned</span>
                               )}
-                            </div>
-                          </TableCell>
-                          <TableCell className="font-medium">{member.name}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              {member.position}
-                              {(member.position === 'CHAIR' || member.position === 'PATRON') && (
-                                <Badge variant="outline" className="text-xs">
-                                  <Crown className="h-3 w-3 mr-1" />
-                                  Departmental
-                                </Badge>
+                            </TableCell>
+
+
+                            <TableCell>
+                              {member ? member.student_id : (
+                                <span className="text-muted-foreground italic">-</span>
                               )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-1">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => openEditLeadershipDialog(member)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={() => deleteLeadership(member.id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                            </TableCell>
+                            <TableCell>
+                              <div className="w-12 h-12 rounded-full overflow-hidden bg-muted flex items-center justify-center">
+                                {member && member.image_url ? (
+                                  <img
+                                    src={member.image_url}
+                                    alt={member.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <Crown className="h-6 w-6 text-muted-foreground" />
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-1">
+                                {member ? (
+                                  <>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => openEditLeadershipDialog(member)}
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="destructive"
+                                      size="sm"
+                                      onClick={() => deleteLeadership(member.id)}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </>
+                                ) : (
+                                  <span className="text-sm text-muted-foreground">No member</span>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
-                )}
-
-                {leadership.length === 0 && (
-                  <p className="text-muted-foreground text-center py-8">No leadership members found.</p>
                 )}
               </CardContent>
             </Card>
@@ -2134,24 +2032,29 @@ const AdminDashboard = () => {
                   />
                 </div>
               </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="edit_leadership_department">Department *</Label>
-                  <Input
-                    id="edit_leadership_department"
-                    value={editLeadership.department}
-                    onChange={(e) => setEditLeadership({ ...editLeadership, department: e.target.value })}
-                    placeholder="Enter department"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit_leadership_student_id">Student ID *</Label>
+                  <Label htmlFor="edit_leadership_student_id">Student ID (optional)</Label>
                   <Input
                     id="edit_leadership_student_id"
                     value={editLeadership.student_id}
                     onChange={(e) => setEditLeadership({ ...editLeadership, student_id: e.target.value })}
                     placeholder="Enter student ID"
                   />
+                </div>
+                <div>
+                  <Label htmlFor="edit_leadership_type">Leadership Type</Label>
+                  <Select value={editLeadership.leadership_type} onValueChange={(value) => setEditLeadership({ ...editLeadership, leadership_type: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="executive">Executive</SelectItem>
+                      <SelectItem value="departmental">Departmental</SelectItem>
+                      <SelectItem value="committee">Committee</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div>
