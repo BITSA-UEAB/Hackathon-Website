@@ -35,6 +35,7 @@ def stats(request):
     })
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def register(request):
     """
     Register a new user
@@ -42,9 +43,14 @@ def register(request):
     serializer = RegisterSerializer(data=request.data)
     if serializer.is_valid():
         user = serializer.save()
+        # Generate tokens for the new user
+        from rest_framework_simplejwt.tokens import RefreshToken
+        refresh = RefreshToken.for_user(user)
         return Response({
             'message': 'User registered successfully',
-            'user': UserSerializer(user).data
+            'user': UserSerializer(user).data,
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
         }, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

@@ -30,7 +30,7 @@ const registerSchema = z.object({
     .regex(/[a-z]/, "Password must contain at least one lowercase letter")
     .regex(/[0-9]/, "Password must contain at least one number"),
   confirmPassword: z.string(),
-  terms: z.boolean().refine((val) => val === true, {
+  terms: z.coerce.boolean().refine((val) => val === true, {
     message: "You must accept the terms and conditions",
   }),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -54,6 +54,7 @@ const RegisterPage = () => {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
     reset,
   } = useForm<RegisterForm>({
@@ -360,7 +361,8 @@ const RegisterPage = () => {
               <div className="flex items-start space-x-3 pt-2">
                 <Checkbox
                   id="terms"
-                  {...register("terms")}
+                  checked={watch("terms")}
+                  onCheckedChange={(checked) => setValue("terms", checked)}
                   className={errors.terms ? "border-destructive" : ""}
                 />
                 <div className="space-y-1">

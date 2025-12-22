@@ -48,11 +48,11 @@ const Blog = () => {
             <p className="text-muted-foreground">Loading blog posts...</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
             {posts.map((post) => (
-              <Card key={post.id} className="hover:shadow-xl transition-all border-border group">
+              <Card key={post.id} className="hover:shadow-xl transition-all border-border group max-w-xs">
                 {post.image_url && (
-                  <div className="aspect-video relative overflow-hidden rounded-t-lg">
+                  <div className="aspect-video relative overflow-hidden rounded-t-lg h-32">
                     <img
                       src={post.image_url}
                       alt={post.title}
@@ -60,40 +60,41 @@ const Blog = () => {
                     />
                   </div>
                 )}
-                <CardHeader>
-                  <div className="flex items-center justify-between mb-2">
-                    <Badge variant="secondary" className="text-xs">
+                <CardHeader className="p-3 pb-2">
+                  <div className="flex items-center justify-between mb-1">
+                    <Badge variant="secondary" className="text-xs px-2 py-0">
                       {post.category}
                     </Badge>
                     <span className="text-xs text-muted-foreground">
-                      {post.read_time} min read
+                      {post.read_time} min
                     </span>
                   </div>
-                  <CardTitle className="text-xl group-hover:text-primary transition-colors">
+                  <CardTitle className="text-sm group-hover:text-primary transition-colors line-clamp-2">
                     {post.title}
                   </CardTitle>
-                  <CardDescription className="line-clamp-2">
+                  <CardDescription className="line-clamp-2 text-xs">
                     {post.excerpt}
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <User size={14} className="mr-2" />
-                    {post.author_name}
+                <CardContent className="space-y-2 p-3 pt-0">
+                  <div className="flex items-center text-xs text-muted-foreground">
+                    <User size={12} className="mr-1" />
+                    <span className="truncate">{post.author_name}</span>
                   </div>
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Calendar size={14} className="mr-2" />
+                  <div className="flex items-center text-xs text-muted-foreground">
+                    <Calendar size={12} className="mr-1" />
                     {new Date(post.published_at || post.created_at).toLocaleDateString()}
                   </div>
                 </CardContent>
-                <CardFooter>
+                <CardFooter className="p-3 pt-0">
                   <Button
                     variant="ghost"
-                    className="w-full group/btn"
+                    size="sm"
+                    className="w-full group/btn text-xs h-8"
                     onClick={() => navigate(`/blog/${post.id}`)}
                   >
-                    Read Article
-                    <ArrowRight size={16} className="ml-2 group-hover/btn:translate-x-1 transition-transform" />
+                    Read
+                    <ArrowRight size={14} className="ml-1 group-hover/btn:translate-x-1 transition-transform" />
                   </Button>
                 </CardFooter>
               </Card>
