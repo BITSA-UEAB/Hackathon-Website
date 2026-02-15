@@ -15,6 +15,7 @@ class LeadershipSerializer(serializers.ModelSerializer):
             'position',
             'department',
             'student_id',
+            'image',
             'image_url',
             'leadership_type',
             'is_active',
@@ -32,6 +33,25 @@ class LeadershipSerializer(serializers.ModelSerializer):
             return obj.image.url
         return None
 
+    def validate(self, attrs):
+        position = attrs.get('position')
+        if position is None and self.instance is not None:
+            position = self.instance.position
+
+        if not position:
+            return attrs
+
+        queryset = Leadership.objects.filter(position=position, is_active=True)
+        if self.instance is not None:
+            queryset = queryset.exclude(pk=self.instance.pk)
+
+        if queryset.exists():
+            raise serializers.ValidationError({
+                'position': f'{position} already exists. Delete the existing one first.'
+            })
+
+        return attrs
+
 
 class LeadershipListSerializer(serializers.ModelSerializer):
     """Simplified serializer for list views"""
@@ -44,11 +64,8 @@ class LeadershipListSerializer(serializers.ModelSerializer):
             'id',
             'name',
             'position',
-            'department',
             'student_id',
             'image_url',
-            'leadership_type',
-            'order'
         ]
     
     def get_image_url(self, obj):

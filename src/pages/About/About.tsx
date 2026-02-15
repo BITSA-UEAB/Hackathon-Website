@@ -6,11 +6,8 @@ interface Leadership {
   id: number;
   name: string;
   position: string;
-  department: string;
-  student_id: string;
+  student_id?: string;
   image_url: string | null;
-  leadership_type: string;
-  order: number;
 }
 
 const API_BASE_URL = "http://localhost:8000";
@@ -59,6 +56,12 @@ const About = () => {
     };
 
     loadLeadershipData();
+
+    const intervalId = setInterval(() => {
+      loadLeadershipData();
+    }, 30000);
+
+    return () => clearInterval(intervalId);
   }, []);
 
   // Helper function to get initials from name
@@ -79,6 +82,14 @@ const About = () => {
     ];
     const index = name.charCodeAt(0) % colors.length;
     return colors[index];
+  };
+
+  const resolveImageUrl = (imageUrl: string | null) => {
+    if (!imageUrl) return null;
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      return imageUrl;
+    }
+    return `${API_BASE_URL}${imageUrl}`;
   };
 
 
@@ -109,14 +120,17 @@ const About = () => {
     <div className="bg-white rounded-2xl p-5 border-2 border-slate-300 shadow-md hover:shadow-lg transition-shadow duration-300">
       <div className="flex flex-col items-center text-center">
         {/* Profile Image with Fallback */}
-        <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-3 shadow-md ${
-          leader.image_url ? 'bg-transparent' : getAvatarColor(leader.name)
+        <div className={`rounded-full flex items-center justify-center mb-3 shadow-md overflow-hidden ${
+          type === 'top' ? 'w-24 h-24' : 'w-16 h-16'
+        } ${
+          resolveImageUrl(leader.image_url) ? 'bg-transparent ring-2 ring-slate-200' : getAvatarColor(leader.name)
         }`}>
-          {leader.image_url ? (
+          {resolveImageUrl(leader.image_url) ? (
             <img 
-              src={leader.image_url} 
+              src={resolveImageUrl(leader.image_url) || ''}
               alt={leader.name}
-              className="w-full h-full rounded-full object-cover"
+              loading="lazy"
+              className="w-full h-full object-cover object-center"
               onError={(e) => {
                 // Fallback to initials if image fails to load
                 const target = e.target as HTMLImageElement;
@@ -124,7 +138,7 @@ const About = () => {
                 const parent = target.parentElement;
                 if (parent) {
                   parent.innerHTML = `<span class="text-white font-bold text-lg">${getInitials(leader.name)}</span>`;
-                  parent.className = `w-16 h-16 rounded-full flex items-center justify-center mb-3 shadow-md ${getAvatarColor(leader.name)}`;
+                  parent.className = `${type === 'top' ? 'w-24 h-24' : 'w-16 h-16'} rounded-full flex items-center justify-center mb-3 shadow-md ${getAvatarColor(leader.name)}`;
                 }
               }}
             />
@@ -145,10 +159,11 @@ const About = () => {
           {leader.position}
         </p>
         
-        {/* Department */}
-        <p className="text-xs text-slate-600">
-          {leader.department}
-        </p>
+        {leader.student_id ? (
+          <p className="text-xs text-slate-600">
+            Student ID: {leader.student_id}
+          </p>
+        ) : null}
       </div>
     </div>
   );
@@ -356,27 +371,28 @@ const About = () => {
                 >
                   <div className="flex flex-col items-center text-center">
                     {/* Profile Image with Fallback */}
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 shadow-sm ${
-                      leader.image_url ? 'bg-transparent' : getAvatarColor(leader.name)
+                    <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-3 shadow-md overflow-hidden ${
+                      resolveImageUrl(leader.image_url) ? 'bg-transparent ring-2 ring-slate-200' : getAvatarColor(leader.name)
                     }`}>
-                      {leader.image_url ? (
+                      {resolveImageUrl(leader.image_url) ? (
                         <img 
-                          src={leader.image_url} 
+                          src={resolveImageUrl(leader.image_url) || ''}
                           alt={leader.name}
-                          className="w-full h-full rounded-full object-cover"
+                          loading="lazy"
+                          className="w-full h-full object-cover object-center"
                           onError={(e) => {
                             // Fallback to initials if image fails to load
                             const target = e.target as HTMLImageElement;
                             target.style.display = 'none';
                             const parent = target.parentElement;
                             if (parent) {
-                              parent.innerHTML = `<span class="text-white font-bold text-sm">${getInitials(leader.name)}</span>`;
-                              parent.className = `w-12 h-12 rounded-full flex items-center justify-center mb-3 shadow-sm ${getAvatarColor(leader.name)}`;
+                              parent.innerHTML = `<span class="text-white font-bold text-base">${getInitials(leader.name)}</span>`;
+                              parent.className = `w-20 h-20 rounded-full flex items-center justify-center mb-3 shadow-md ${getAvatarColor(leader.name)}`;
                             }
                           }}
                         />
                       ) : (
-                        <span className="text-white font-bold text-sm">
+                        <span className="text-white font-bold text-base">
                           {getInitials(leader.name)}
                         </span>
                       )}
@@ -392,10 +408,11 @@ const About = () => {
                       {leader.position}
                     </p>
                     
-                    {/* Department */}
-                    <p className="text-xs text-slate-600">
-                      {leader.department}
-                    </p>
+                    {leader.student_id ? (
+                      <p className="text-xs text-slate-600">
+                        Student ID: {leader.student_id}
+                      </p>
+                    ) : null}
                   </div>
                 </div>
               ))}

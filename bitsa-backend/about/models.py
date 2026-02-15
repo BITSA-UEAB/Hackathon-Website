@@ -74,6 +74,13 @@ class Leadership(models.Model):
         ordering = ['leadership_type', 'order', 'name']
         verbose_name = 'Leadership'
         verbose_name_plural = 'Leadership'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['position'],
+                condition=models.Q(is_active=True),
+                name='unique_active_leadership_position'
+            )
+        ]
         
     def __str__(self):
         return f"{self.name} - {self.position}"
