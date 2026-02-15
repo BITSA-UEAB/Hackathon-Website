@@ -1,11 +1,11 @@
 import Navbar from "@/components/Navbar";
-import Hero from "@/components/Hero";
+import Hero from "@/pages/home/Hero";
 import About from "@/components/About";
 import Events from "@/components/Events";
-import Blog from "@/components/Blog";
-import Gallery from "@/components/Gallery";
-import Contact from "@/components/Contact";
-import Footer from "@/components/Footer";
+import Blog from "@/pages/Blogs/Blog";
+import Gallery from "@/pages/Gallery/Gallery";
+import Contact from "@/pages/contact/Contact";
+import Footer from "@/pages/home/Footer";
 
 const Index = () => {
   return (

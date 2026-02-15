@@ -14,7 +14,7 @@ import { Loader2, Shield, Zap, Users, CheckCircle2, Eye, EyeOff, Lock, Mail, Use
 import { Progress } from "@/components/ui/progress";
 
 // Import bitsa logo image
-import bitsaLogo from "../../public/bitsa logo.png";
+import bitsaLogo from "/bitsa logo.png";
 
 const registerSchema = z.object({
   name: z.string()

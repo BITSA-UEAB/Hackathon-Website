@@ -1,6 +1,6 @@
 import Navbar from "@/components/Navbar";
-import Blog from "@/components/Blog";
-import Footer from "@/components/Footer";
+import Blog from "./Blog";
+import Footer from "@/pages/home/Footer";
 
 const BlogPage = () => {
   return (

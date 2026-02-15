@@ -1,6 +1,6 @@
 import Navbar from "@/components/Navbar";
-import Events from "@/components/Events";
-import Footer from "@/components/Footer";
+import Events from "@/pages/Events/Events";
+import Footer from "@/pages/home/Footer";
 
 const EventsPage = () => {
   return (

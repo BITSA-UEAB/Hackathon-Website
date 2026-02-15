@@ -1,6 +1,6 @@
 import Navbar from "@/components/Navbar";
-import Gallery from "@/components/Gallery";
-import Footer from "@/components/Footer";
+import Gallery from "@/pages/Gallery/Gallery";
+import Footer from "@/pages/home/Footer";
 
 const GalleryPage = () => {
   return (
