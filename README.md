@@ -22,7 +22,7 @@ BITSA (BITS Africa) is a comprehensive full-stack web platform designed to serve
 - **Database**: PostgreSQL
 - **CORS**: django-cors-headers
 
-## Features
+## Features.
 
 - User Authentication (Registration, Login, Profile Management)
 - Admin Dashboard
