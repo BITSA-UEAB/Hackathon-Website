@@ -42,13 +42,13 @@ const getInitials = (name: string): string => {
 const getAvatarColor = (name: string): string => {
   const colors = [
     'bg-blue-500',
-    'bg-green-500',
-    'bg-purple-500',
-    'bg-pink-500',
-    'bg-indigo-500',
-    'bg-teal-500',
-    'bg-orange-500',
-    'bg-cyan-500',
+    'bg-blue-600',
+    'bg-blue-700',
+    'bg-blue-800',
+    'bg-indigo-600',
+    'bg-indigo-700',
+    'bg-sky-600',
+    'bg-sky-700',
   ];
   const index = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
   return colors[index % colors.length];
@@ -57,7 +57,7 @@ const getAvatarColor = (name: string): string => {
 // LeaderCard Component
 const LeaderCard = ({ leader, type }: { leader: Leadership; type: 'top' | 'student' }) => {
   return (
-    <div className="bg-white rounded-2xl p-5 border-2 border-slate-200 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
+    <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
       <div className="flex flex-col items-center text-center">
         {/* Profile Image with Fallback */}
         <div className={`rounded-full flex items-center justify-center mb-3 shadow-md overflow-hidden ${
@@ -72,7 +72,6 @@ const LeaderCard = ({ leader, type }: { leader: Leadership; type: 'top' | 'stude
               loading="lazy"
               className="w-full h-full object-cover object-center"
               onError={(e) => {
-                // Fallback to initials if image fails to load
                 const target = e.target as HTMLImageElement;
                 target.style.display = 'none';
                 const parent = target.parentElement;
@@ -117,7 +116,7 @@ const LeaderCard = ({ leader, type }: { leader: Leadership; type: 'top' | 'stude
           <div className="flex gap-3 justify-center mt-2">
             {leader.links.linkedin && (
               <a href={leader.links.linkedin} target="_blank" rel="noopener noreferrer" title="LinkedIn" className="text-blue-600 hover:text-blue-800 transition-colors">
-                <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-10h3v10zm-1.5-11.268c-.966 0-1.75-.784-1.75-1.75s.784-1.75 1.75-1.75 1.75.784 1.75 1.75-.784 1.75-1.75 1.75zm15.5 11.268h-3v-5.604c0-1.337-.025-3.063-1.868-3.063-1.868 0-2.154 1.459-2.154 2.968v5.699h-3v-10h2.881v1.367h.041c.401-.761 1.381-1.563 2.844-1.563 3.042 0 3.604 2.003 3.604 4.605v5.591zm-12.5-10h-.029c-.966 0-1.75-.784-1.75-1.75s.784-1.75 1.75-1.75 1.75.784 1.75 1.75-.784 1.75-1.75 1.75z"/></svg>
+                <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-10h3v10zm-1.5-11.268c-.966 0-1.75-.784-1.75-1.75s.784-1.75 1.75-1.75 1.75.784 1.75 1.75-.784 1.75-1.75 1.75zm15.5 11.268h-3v-5.604c0-1.337-.025-3.063-1.868-3.063-1.868 0-2.154 1.459-2.154 2.968v5.699h-3v-10h2.881v1.367h.041c.401-.761 1.381-1.563 2.844-1.563 3.042 0 3.604 2.003 3.604 4.605v5.591z"/></svg>
               </a>
             )}
             {leader.links.github && (
@@ -126,7 +125,7 @@ const LeaderCard = ({ leader, type }: { leader: Leadership; type: 'top' | 'stude
               </a>
             )}
             {leader.links.email && (
-              <a href={`mailto:${leader.links.email}`} title="Email" className="text-red-600 hover:text-red-800 transition-colors">
+              <a href={`mailto:${leader.links.email}`} title="Email" className="text-blue-600 hover:text-blue-800 transition-colors">
                 <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 13.065l-8-5.065v10h16v-10l-8 5.065zm8-7.065h-16c-1.104 0-2 .896-2 2v14c0 1.104.896 2 2 2h16c1.104 0 2-.896 2-2v-14c0-1.104-.896-2-2-2zm-8 7.065l8-5.065v-2h-16v2l8 5.065z"/></svg>
               </a>
             )}
@@ -203,11 +202,22 @@ const About = () => {
   const [error, setError] = useState(false);
 
   // Intersection Observer for animations
-  const [visibleSections, setVisibleSections] = useState({});
-  const sectionRefs = useRef([]);
+  const [visibleSections, setVisibleSections] = useState<Record<string, boolean>>({});
+  // Always keep refs array at correct length (7 sections)
+  const NUM_SECTIONS = 7;
+  const sectionRefs = useRef<(HTMLElement | null)[]>(Array(NUM_SECTIONS).fill(null));
+
+  // Stable ref callback that won't cause re-renders
+  const setSectionRef = (index: number) => (el: HTMLElement | null) => {
+    sectionRefs.current[index] = el;
+  };
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
+    // Only run in browser
+    if (typeof window === 'undefined') return;
+    // Only observe after refs are set
+    if (!sectionRefs.current.some(Boolean)) return;
+    let observer: IntersectionObserver | null = new window.IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
@@ -215,6 +225,7 @@ const About = () => {
               ...prev,
               [(entry.target as HTMLElement).dataset.section as string]: true,
             }));
+            observer && observer.unobserve(entry.target); // Unobserve after visible
           }
         });
       },
@@ -222,11 +233,15 @@ const About = () => {
     );
 
     sectionRefs.current.forEach((ref) => {
-      if (ref) observer.observe(ref);
+      if (ref) observer && observer.observe(ref);
     });
 
-    return () => observer.disconnect();
-  }, []);
+    return () => {
+      if (observer) observer.disconnect();
+      observer = null;
+    };
+  }, [sectionRefs.current.map(Boolean).join("")]);
+
 
   const fetchLeadership = async () => {
     setLoading(true);
@@ -262,36 +277,32 @@ const About = () => {
       description: "Master cutting-edge technologies through hands-on projects and continuous learning in a supportive environment.",
       bgColor: "bg-blue-50",
       borderColor: "border-blue-200",
-      iconBg: "bg-blue-600",
     },
     {
       icon: Lightbulb,
       title: "Innovation First",
       description: "Foster creative thinking and groundbreaking solutions that push the boundaries of technology.",
-      bgColor: "bg-purple-50",
-      borderColor: "border-purple-200",
-      iconBg: "bg-purple-600",
+      bgColor: "bg-blue-50",
+      borderColor: "border-blue-200",
     },
     {
       icon: Users2,
       title: "Collaborative Spirit",
       description: "Build lasting connections through teamwork, mentorship, and shared learning experiences.",
-      bgColor: "bg-green-50",
-      borderColor: "border-green-200",
-      iconBg: "bg-green-600",
+      bgColor: "bg-blue-50",
+      borderColor: "border-blue-200",
     },
     {
       icon: Trophy,
       title: "Drive to Achieve",
       description: "Excel in competitions, hackathons, and real-world projects that showcase your talents.",
-      bgColor: "bg-orange-50",
-      borderColor: "border-orange-200",
-      iconBg: "bg-orange-600",
+      bgColor: "bg-blue-50",
+      borderColor: "border-blue-200",
     },
   ];
 
   // Helper function to check if section is visible
-  const isVisible = (sectionId) => visibleSections[sectionId] || false;
+  const isVisible = (sectionId: string) => visibleSections[sectionId] || false;
 
   // Loading state
   if (loading) {
@@ -308,25 +319,19 @@ const About = () => {
   }
 
   return (
-    <section className="py-20 relative overflow-hidden bg-white">
-      {/* Hero Section with Background Pattern */}
-      <div className="relative bg-gradient-to-r from-blue-600 to-indigo-700 py-20 mb-16 overflow-hidden">
+    <section className="">
+      {/* Hero Section with Blue Gradient Background */}
+      <div className="relative bg-gradient-to-r from-blue-600 to-blue-800 py-20 mb-16 overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 left-0 w-64 h-64 bg-white rounded-full -translate-x-1/2 -translate-y-1/2"></div>
           <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full translate-x-1/3 translate-y-1/3"></div>
         </div>
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-4xl mx-auto text-center text-white">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 shadow-sm mb-6 animate-fade-in-down">
-              <Sparkles className="w-4 h-4 text-white" />
-              <span className="text-sm font-semibold text-white">
-                About Our Community
-              </span>
-            </div>
             
             <h1 className="text-5xl md:text-6xl font-bold mb-6 animate-fade-in-up">
               Shaping the Future of{" "}
-              <span className="text-yellow-300">
+              <span className="text-blue-200">
                 Tech Talent
               </span>
             </h1>
@@ -356,9 +361,207 @@ const About = () => {
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
+        {/* Core Values Section */}
+        <div 
+          ref={setSectionRef(0)}
+          data-section="values"
+          className="mb-20 transform transition-all duration-700"
+          style={{
+            transform: isVisible('values') ? 'translateY(0)' : 'translateY(40px)',
+            opacity: isVisible('values') ? 1 : 0
+          }}
+        >
+
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Our Core Values</h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">The principles that guide everything we do</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {values.map((value, index) => {
+              const Icon = value.icon;
+              return (
+                <div
+                  key={index}
+                  className={`group p-8 rounded-2xl ${value.bgColor} border-2 ${value.borderColor} hover:shadow-xl transition-all duration-300 hover:-translate-y-2`}
+                >
+                  <div className="w-14 h-14 bg-blue-600 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                    <Icon className="text-white" size={28} />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">{value.title}</h3>
+                  <p className="text-gray-700 leading-relaxed">
+                    {value.description}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Mission & Vision Section - Blue Gradient Background */}
+        <div 
+          ref={setSectionRef(1)}
+          data-section="mission"
+          className="mb-20 transform transition-all duration-700"
+          style={{
+            transform: isVisible('mission') ? 'translateY(0)' : 'translateY(40px)',
+            opacity: isVisible('mission') ? 1 : 0
+          }}
+        >
+          <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-3xl p-12 text-white shadow-2xl">
+
+            <div className="max-w-5xl mx-auto">
+              <div className="text-center mb-10">
+                <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-5 backdrop-blur-sm">
+                  <Target className="w-8 h-8 text-white" />
+                </div>
+                <h2 className="text-4xl font-bold mb-4">Our Mission & Vision</h2>
+              </div>
+              
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="bg-white/5 backdrop-blur-sm rounded-xl p-8 border border-white/10 hover:bg-white/10 transition-all">
+                  <div className="flex items-start gap-4">
+                    <Rocket className="w-8 h-8 text-blue-300 flex-shrink-0" />
+                    <div>
+                      <h3 className="text-xl font-bold mb-3 text-blue-300">Our Mission</h3>
+                      <p className="text-gray-200 leading-relaxed">
+                        To create an inclusive platform where BIT students develop practical skills, 
+                        foster innovation, and build career-defining connections in the tech industry.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-white/5 backdrop-blur-sm rounded-xl p-8 border border-white/10 hover:bg-white/10 transition-all">
+                  <div className="flex items-start gap-4">
+                    <Heart className="w-8 h-8 text-blue-300 flex-shrink-0" />
+                    <div>
+                      <h3 className="text-xl font-bold mb-3 text-blue-300">Our Vision</h3>
+                      <p className="text-gray-200 leading-relaxed">
+                        To be the leading student association that transforms IT education into 
+                        real-world success stories and shapes the next generation of tech leaders.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Impact Metrics */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10 pt-8 border-t border-white/20">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-white mb-1">95%</div>
+                  <div className="text-sm text-blue-200">Career Readiness</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-white mb-1">100+</div>
+                  <div className="text-sm text-blue-200">Industry Partners</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-white mb-1">4.9★</div>
+                  <div className="text-sm text-blue-200">Student Satisfaction</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Why Join Section */}
+        <div 
+          ref={setSectionRef(2)}
+          data-section="why-join"
+
+          className="mb-20 transform transition-all duration-700"
+          style={{
+            transform: isVisible('why-join') ? 'translateY(0)' : 'translateY(40px)',
+            opacity: isVisible('why-join') ? 1 : 0
+          }}
+        >
+
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Why Join BITSA?</h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">Benefits that await you as a member</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { icon: Users, title: "Network", description: "Connect with 500+ tech enthusiasts" },
+              { icon: Calendar, title: "Events", description: "50+ workshops and hackathons yearly" },
+              { icon: BookOpen, title: "Resources", description: "Access to learning materials" },
+              { icon: Award, title: "Certificates", description: "Earn recognized certifications" },
+            ].map((item, index) => (
+              <div key={index} className="group p-6 bg-gray-50 rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 hover:-translate-y-2 text-center">
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-600 transition-colors">
+                  <item.icon className="w-6 h-6 text-blue-600 group-hover:text-white transition-colors" />
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-2">{item.title}</h3>
+                <p className="text-sm text-gray-600">{item.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Testimonials Section */}
+        <div 
+          ref={setSectionRef(3)}
+          data-section="testimonials"
+
+          className="mb-20 transform transition-all duration-700"
+          style={{
+            transform: isVisible('testimonials') ? 'translateY(0)' : 'translateY(40px)',
+            opacity: isVisible('testimonials') ? 1 : 0
+          }}
+        >
+
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">What Members Say</h2>
+            <p className="text-lg text-gray-600">Hear from our community</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                name: "Sarah Johnson",
+                role: "CS Student",
+                quote: "BITSA gave me the platform to grow my skills and network with industry professionals.",
+                rating: 5
+              },
+              {
+                name: "Michael Chen",
+                role: "Software Engineer",
+                quote: "The mentorship and workshops were invaluable in landing my first tech job.",
+                rating: 5
+              },
+              {
+                name: "Priya Patel",
+                role: "Tech Lead",
+                quote: "From member to mentor - BITSA's community helped me grow at every stage.",
+                rating: 5
+              }
+            ].map((testimonial, index) => (
+              <div key={index} className="p-6 bg-gray-50 rounded-xl border border-gray-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-blue-600 rounded-full mr-4 flex items-center justify-center text-white font-bold text-lg">
+                    {testimonial.name.charAt(0)}
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">{testimonial.name}</h4>
+                    <p className="text-sm text-gray-600">{testimonial.role}</p>
+                  </div>
+                </div>
+                <p className="text-gray-700 italic mb-3">"{testimonial.quote}"</p>
+                <div className="flex">
+                  {[...Array(testimonial.rating)].map((_, i) => (
+                    <Star key={i} className="w-4 h-4 text-blue-400 fill-current" />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Top Leadership Section */}
         <div 
-          ref={(el) => (sectionRefs.current[0] = el)}
+          ref={setSectionRef(4)}
           data-section="top-leaders"
           className="mb-20 transform transition-all duration-700"
           style={{
@@ -366,6 +569,7 @@ const About = () => {
             opacity: isVisible('top-leaders') ? 1 : 0
           }}
         >
+
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">Our Top Leaders</h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">Guiding BITSA with Vision and Excellence</p>
@@ -405,7 +609,7 @@ const About = () => {
 
         {/* Student Leaders Section */}
         <div 
-          ref={(el) => (sectionRefs.current[1] = el)}
+          ref={setSectionRef(5)}
           data-section="student-leaders"
           className="mb-20 transform transition-all duration-700"
           style={{
@@ -413,6 +617,7 @@ const About = () => {
             opacity: isVisible('student-leaders') ? 1 : 0
           }}
         >
+
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">Student Leaders</h2>
             <p className="text-lg text-gray-600">Driving BITSA Activities and Initiatives</p>
@@ -466,210 +671,19 @@ const About = () => {
           </div>
         </div>
 
-        {/* Core Values Section */}
-        <div 
-          ref={(el) => (sectionRefs.current[2] = el)}
-          data-section="values"
-          className="mb-20 transform transition-all duration-700"
-          style={{
-            transform: isVisible('values') ? 'translateY(0)' : 'translateY(40px)',
-            opacity: isVisible('values') ? 1 : 0
-          }}
-        >
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Our Core Values</h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">The principles that guide everything we do</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {values.map((value, index) => {
-              const Icon = value.icon;
-              return (
-                <div
-                  key={index}
-                  className={`group p-8 rounded-2xl ${value.bgColor} border-2 ${value.borderColor} hover:shadow-xl transition-all duration-300 hover:-translate-y-2`}
-                >
-                  <div className={`w-14 h-14 ${value.iconBg} rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
-                    <Icon className="text-white" size={28} />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">{value.title}</h3>
-                  <p className="text-gray-700 leading-relaxed">
-                    {value.description}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Mission & Vision Section - Gradient Background */}
-        <div 
-          ref={(el) => (sectionRefs.current[3] = el)}
-          data-section="mission"
-          className="mb-20 transform transition-all duration-700"
-          style={{
-            transform: isVisible('mission') ? 'translateY(0)' : 'translateY(40px)',
-            opacity: isVisible('mission') ? 1 : 0
-          }}
-        >
-          <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-12 text-white shadow-2xl">
-            <div className="max-w-5xl mx-auto">
-              <div className="text-center mb-10">
-                <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-5 backdrop-blur-sm">
-                  <Target className="w-8 h-8 text-white" />
-                </div>
-                <h2 className="text-4xl font-bold mb-4">Our Mission & Vision</h2>
-              </div>
-              
-              <div className="grid md:grid-cols-2 gap-8">
-                <div className="bg-white/5 backdrop-blur-sm rounded-xl p-8 border border-white/10 hover:bg-white/10 transition-all">
-                  <div className="flex items-start gap-4">
-                    <Rocket className="w-8 h-8 text-blue-400 flex-shrink-0" />
-                    <div>
-                      <h3 className="text-xl font-bold mb-3 text-blue-400">Our Mission</h3>
-                      <p className="text-gray-300 leading-relaxed">
-                        To create an inclusive platform where BIT students develop practical skills, 
-                        foster innovation, and build career-defining connections in the tech industry.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="bg-white/5 backdrop-blur-sm rounded-xl p-8 border border-white/10 hover:bg-white/10 transition-all">
-                  <div className="flex items-start gap-4">
-                    <Heart className="w-8 h-8 text-pink-400 flex-shrink-0" />
-                    <div>
-                      <h3 className="text-xl font-bold mb-3 text-pink-400">Our Vision</h3>
-                      <p className="text-gray-300 leading-relaxed">
-                        To be the leading student association that transforms IT education into 
-                        real-world success stories and shapes the next generation of tech leaders.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Impact Metrics */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10 pt-8 border-t border-white/10">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-400 mb-1">95%</div>
-                  <div className="text-sm text-gray-400">Career Readiness</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-green-400 mb-1">100+</div>
-                  <div className="text-sm text-gray-400">Industry Partners</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-yellow-400 mb-1">4.9★</div>
-                  <div className="text-sm text-gray-400">Student Satisfaction</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Why Join Section */}
-        <div 
-          ref={(el) => (sectionRefs.current[4] = el)}
-          data-section="why-join"
-          className="mb-20 transform transition-all duration-700"
-          style={{
-            transform: isVisible('why-join') ? 'translateY(0)' : 'translateY(40px)',
-            opacity: isVisible('why-join') ? 1 : 0
-          }}
-        >
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Why Join BITSA?</h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">Benefits that await you as a member</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { icon: Users, title: "Network", description: "Connect with 500+ tech enthusiasts", color: "blue" },
-              { icon: Calendar, title: "Events", description: "50+ workshops and hackathons yearly", color: "purple" },
-              { icon: BookOpen, title: "Resources", description: "Access to learning materials", color: "green" },
-              { icon: Award, title: "Certificates", description: "Earn recognized certifications", color: "orange" },
-            ].map((item, index) => (
-              <div key={index} className="group p-6 bg-gray-50 rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 hover:-translate-y-2 text-center">
-                <div className={`w-12 h-12 bg-${item.color}-100 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:bg-${item.color}-600 transition-colors`}>
-                  <item.icon className={`w-6 h-6 text-${item.color}-600 group-hover:text-white transition-colors`} />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">{item.title}</h3>
-                <p className="text-sm text-gray-600">{item.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Testimonials Section */}
-        <div 
-          ref={(el) => (sectionRefs.current[5] = el)}
-          data-section="testimonials"
-          className="mb-20 transform transition-all duration-700"
-          style={{
-            transform: isVisible('testimonials') ? 'translateY(0)' : 'translateY(40px)',
-            opacity: isVisible('testimonials') ? 1 : 0
-          }}
-        >
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">What Members Say</h2>
-            <p className="text-lg text-gray-600">Hear from our community</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              {
-                name: "Sarah Johnson",
-                role: "CS Student",
-                quote: "BITSA gave me the platform to grow my skills and network with industry professionals.",
-                rating: 5
-              },
-              {
-                name: "Michael Chen",
-                role: "Software Engineer",
-                quote: "The mentorship and workshops were invaluable in landing my first tech job.",
-                rating: 5
-              },
-              {
-                name: "Priya Patel",
-                role: "Tech Lead",
-                quote: "From member to mentor - BITSA's community helped me grow at every stage.",
-                rating: 5
-              }
-            ].map((testimonial, index) => (
-              <div key={index} className="p-6 bg-white rounded-xl border border-gray-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full mr-4 flex items-center justify-center text-white font-bold text-lg">
-                    {testimonial.name.charAt(0)}
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">{testimonial.name}</h4>
-                    <p className="text-sm text-gray-600">{testimonial.role}</p>
-                  </div>
-                </div>
-                <p className="text-gray-700 italic mb-3">"{testimonial.quote}"</p>
-                <div className="flex">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* Call to Action */}
         <div 
-          ref={(el) => (sectionRefs.current[6] = el)}
+          ref={setSectionRef(6)}
           data-section="cta"
-          className="text-center bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl p-12 shadow-xl transform transition-all duration-700"
+          className="text-center bg-gradient-to-r from-blue-600 to-blue-800 rounded-3xl p-12 shadow-xl transform transition-all duration-700"
           style={{
             transform: isVisible('cta') ? 'translateY(0)' : 'translateY(40px)',
             opacity: isVisible('cta') ? 1 : 0
           }}
         >
+
           <h3 className="text-3xl font-bold text-white mb-4">Ready to Join Our Community?</h3>
-          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+          <p className="text-xl text-blue-200 mb-8 max-w-2xl mx-auto">
             Become part of a community dedicated to innovation and excellence in technology.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -683,6 +697,7 @@ const About = () => {
           </div>
         </div>
       </div>
+
 
       <style>{`
         @keyframes fadeInUp {

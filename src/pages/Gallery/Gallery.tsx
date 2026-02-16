@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { Camera, X, ChevronRight, Filter, Sparkles, Calendar, User } from "lucide-react";
 
 interface Photo {
   id: number;
@@ -8,6 +9,7 @@ interface Photo {
   image_url: string;
   uploaded_by_name: string;
   uploaded_at: string;
+  category?: string;
 }
 
 const Gallery = () => {
@@ -18,10 +20,39 @@ const Gallery = () => {
   const [error, setError] = useState<string | null>(null);
   const [category, setCategory] = useState<string>("");
   const [showUpload, setShowUpload] = useState(false);
+
+  // Intersection Observer for animations
+  const [visibleSections, setVisibleSections] = useState({});
+  const sectionRefs = useRef([]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setVisibleSections((prev) => ({
+              ...prev,
+              [entry.target.dataset.section]: true,
+            }));
+          }
+        });
+      },
+      { threshold: 0.1, rootMargin: "0px 0px -50px 0px" }
+    );
+
+    sectionRefs.current.forEach((ref) => {
+      if (ref) observer.observe(ref);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
   // Get unique categories from photos
   const categories = Array.from(new Set(photos.map((p) => p.category).filter(Boolean)));
   // Filter photos by category
   const filteredPhotos = category ? photos.filter((p) => p.category === category) : photos;
+
+  const isVisible = (sectionId) => visibleSections[sectionId] || false;
 
   useEffect(() => {
     const fetchPhotos = async () => {
@@ -43,382 +74,227 @@ const Gallery = () => {
     fetchPhotos();
   }, []);
 
-  const styles = {
-    section: {
-      padding: '5rem 0',
-      background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
-    },
-    heading: {
-      fontSize: 'clamp(2rem, 5vw, 3rem)',
-      fontWeight: '800',
-      color: '#1e40af',
-      marginBottom: '1rem',
-      textAlign: 'center' as const,
-    },
-    accentText: {
-      color: '#3b82f6',
-      background: 'linear-gradient(135deg, #2563eb, #3b82f6)',
-      WebkitBackgroundClip: 'text',
-      WebkitTextFillColor: 'transparent',
-    },
-    subtitle: {
-      fontSize: '1.125rem',
-      color: '#64748b',
-      maxWidth: '42rem',
-      margin: '0 auto 4rem',
-      textAlign: 'center' as const,
-    },
-    galleryContainer: {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(12, 1fr)',
-      gap: '1.5rem',
-      alignItems: 'start',
-    },
-    featuredImage: {
-      gridColumn: 'span 12',
-      height: '600px',
-      position: 'relative' as const,
-      borderRadius: '1.5rem',
-      overflow: 'hidden',
-      boxShadow: '0 20px 60px -15px rgba(37, 99, 235, 0.3)',
-      cursor: 'pointer',
-      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-    },
-    featuredImageMd: {
-      gridColumn: 'span 7',
-    },
-    featuredImageHover: {
-      transform: 'translateY(-8px)',
-      boxShadow: '0 25px 70px -15px rgba(37, 99, 235, 0.4)',
-    },
-    gridImages: {
-      gridColumn: 'span 12',
-      display: 'grid',
-      gridTemplateColumns: 'repeat(2, 1fr)',
-      gap: '1.5rem',
-    },
-    gridImagesMd: {
-      gridColumn: 'span 5',
-      gridTemplateColumns: 'repeat(2, 1fr)',
-    },
-    gridImageItem: {
-      position: 'relative' as const,
-      height: '287px',
-      borderRadius: '1rem',
-      overflow: 'hidden',
-      cursor: 'pointer',
-      transition: 'all 0.3s ease',
-      boxShadow: '0 10px 30px -10px rgba(59, 130, 246, 0.2)',
-    },
-    imageElement: {
-      width: '100%',
-      height: '100%',
-      objectFit: 'cover' as const,
-      transition: 'transform 0.4s ease',
-    },
-    overlay: {
-      position: 'absolute' as const,
-      inset: '0',
-      background: 'linear-gradient(to top, rgba(30, 64, 175, 0.9) 0%, rgba(59, 130, 246, 0.4) 50%, transparent 100%)',
-      opacity: 0,
-      transition: 'opacity 0.3s ease',
-      display: 'flex',
-      alignItems: 'flex-end',
-      padding: '1.5rem',
-    },
-    overlayContent: {
-      color: '#ffffff',
-      transform: 'translateY(10px)',
-      transition: 'transform 0.3s ease',
-    },
-    imageTitle: {
-      fontWeight: '700',
-      fontSize: '1.25rem',
-      marginBottom: '0.25rem',
-    },
-    imageDescription: {
-      fontSize: '0.875rem',
-      opacity: 0.95,
-      marginBottom: '0.5rem',
-    },
-    imageMeta: {
-      fontSize: '0.75rem',
-      opacity: 0.85,
-    },
-    viewAllButton: {
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: '0.5rem',
-      marginTop: '2rem',
-      padding: '0.875rem 1.75rem',
-      background: 'linear-gradient(135deg, #2563eb, #3b82f6)',
-      color: '#ffffff',
-      border: 'none',
-      borderRadius: '0.75rem',
-      fontSize: '1rem',
-      fontWeight: '600',
-      cursor: 'pointer',
-      transition: 'all 0.3s ease',
-      boxShadow: '0 4px 15px rgba(37, 99, 235, 0.3)',
-    },
-    loadingContainer: {
-      textAlign: 'center' as const,
-      padding: '3rem 0',
-    },
-    loadingText: {
-      color: '#1e40af',
-      fontSize: '1.125rem',
-    },
-  };
+  if (loading) {
+    return (
+      <section className="min-h-screen py-20 bg-gradient-to-b from-blue-50 to-white">
+        <div className="container mx-auto px-4 text-center">
+          <div className="flex items-center justify-center gap-3">
+            <Sparkles className="animate-spin text-blue-600" size={24} />
+            <p className="text-lg text-blue-600 font-medium">Loading gallery...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
-    <section style={styles.section}>
-      <div className="container mx-auto px-4">
-        <div>
-          <h2 style={styles.heading}>
-            Event <span style={styles.accentText}>Gallery</span>
-          </h2>
-          <p style={styles.subtitle}>
-            Capturing moments from our workshops, hackathons, and community events.
-          </p>
+    <section className="py-20 bg-white min-h-screen">
+      {/* Hero Section */}
+      <div className="relative bg-gradient-to-r from-blue-600 to-blue-800 py-16 mb-12 overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-64 h-64 bg-white rounded-full -translate-x-1/2 -translate-y-1/2"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full translate-x-1/3 translate-y-1/3"></div>
         </div>
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-4xl mx-auto text-center text-white">
+            <h1 className="text-5xl md:text-6xl font-bold mb-4 animate-fade-in-up">
+              Event <span className="text-blue-200">Gallery</span>
+            </h1>
+            <p className="text-xl text-blue-100 max-w-2xl mx-auto animate-fade-in-up animation-delay-200">
+              Capturing moments from our workshops, hackathons, and community events.
+            </p>
+          </div>
+        </div>
+      </div>
 
+      <div className="container mx-auto px-4">
         {/* Gallery Controls */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
-          <div>
-            <label style={{ fontSize: 14, fontWeight: 500, marginRight: 8 }}>Category:</label>
+        <div 
+          ref={(el) => (sectionRefs.current[0] = el)}
+          data-section="controls"
+          className={`flex flex-col sm:flex-row justify-between items-center gap-4 mb-8 transition-all duration-700 ${
+            isVisible('controls') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <Filter size={18} className="text-gray-500" />
             <select
               value={category}
               onChange={e => setCategory(e.target.value)}
-              style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 14 }}
+              className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
             >
-              <option value="">All</option>
+              <option value="">All Categories</option>
               {categories.map((cat) => (
                 <option key={cat} value={cat}>{cat}</option>
               ))}
             </select>
           </div>
+          
           <button
-            style={{
-              background: 'linear-gradient(135deg, #2563eb, #3b82f6)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 8,
-              padding: '8px 18px',
-              fontWeight: 600,
-              fontSize: 15,
-              cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(37,99,235,0.15)'
-            }}
+            className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-all duration-300 hover:scale-105 shadow-md"
             onClick={() => setShowUpload(true)}
           >
+            <Camera size={18} />
             Upload Photo
           </button>
         </div>
 
-        {loading ? (
-          <div style={styles.loadingContainer}>
-            <p style={styles.loadingText}>Loading photos...</p>
-          </div>
-        ) : error ? (
-          <div style={styles.loadingContainer}>
-            <p style={{ color: '#dc2626', fontSize: '1.125rem' }}>{error}</p>
+        {error ? (
+          <div className="text-center py-12 bg-gray-50 rounded-2xl">
+            <p className="text-red-600 text-lg">{error}</p>
           </div>
         ) : photos.length === 0 ? (
-          <div style={styles.loadingContainer}>
-            <p style={{ color: '#64748b', fontSize: '1.125rem' }}>No photos available yet.</p>
+          <div className="text-center py-12 bg-gray-50 rounded-2xl">
+            <p className="text-gray-600 text-lg">No photos available yet.</p>
           </div>
         ) : (
           <>
+            {/* Gallery Grid */}
             <div 
-              style={{
-                ...styles.galleryContainer,
-                ...(window.innerWidth >= 768 && { display: 'grid' }),
-              }}
-              className="gallery-responsive"
+              ref={(el) => (sectionRefs.current[1] = el)}
+              data-section="gallery"
+              className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 transition-all duration-700 ${
+                isVisible('gallery') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+              }`}
             >
-              {/* Featured/First Image - Left Side */}
-              {filteredPhotos[0] && (
+              {filteredPhotos.map((photo, index) => (
                 <div
-                  style={{
-                    ...styles.featuredImage,
-                    ...(window.innerWidth >= 768 && styles.featuredImageMd),
-                  }}
-                  onClick={() => setSelectedImage(0)}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-8px)';
-                    e.currentTarget.style.boxShadow = '0 25px 70px -15px rgba(37, 99, 235, 0.4)';
-                    const img = e.currentTarget.querySelector('img');
-                    if (img) img.style.transform = 'scale(1.05)';
-                    const overlay = e.currentTarget.querySelector('.overlay');
-                    if (overlay) (overlay as HTMLElement).style.opacity = '1';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 20px 60px -15px rgba(37, 99, 235, 0.3)';
-                    const img = e.currentTarget.querySelector('img');
-                    if (img) img.style.transform = 'scale(1)';
-                    const overlay = e.currentTarget.querySelector('.overlay');
-                    if (overlay) (overlay as HTMLElement).style.opacity = '0';
-                  }}
+                  key={photo.id}
+                  className="group relative aspect-square rounded-xl overflow-hidden cursor-pointer bg-gray-100 border border-gray-200 hover:border-blue-300 hover:shadow-xl transition-all duration-300 hover:-translate-y-2"
+                  onClick={() => setSelectedImage(index)}
                 >
                   <img
-                    src={filteredPhotos[0].image_url}
-                    alt={filteredPhotos[0].title}
-                    style={styles.imageElement}
+                    src={photo.image_url}
+                    alt={photo.title}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    loading="lazy"
                   />
-                  <div className="overlay" style={styles.overlay}>
-                    <div style={styles.overlayContent}>
-                      <h3 style={styles.imageTitle}>{filteredPhotos[0].title}</h3>
-                      <p style={styles.imageDescription}>{filteredPhotos[0].description}</p>
-                      <p style={styles.imageMeta}>
-                        By {filteredPhotos[0].uploaded_by_name} • {new Date(filteredPhotos[0].uploaded_at).toLocaleDateString()}
-                      </p>
+                  <div className="absolute inset-0 bg-gradient-to-t from-blue-900/90 via-blue-800/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                      <h3 className="font-bold text-lg mb-1 line-clamp-1">{photo.title}</h3>
+                      <p className="text-sm text-blue-100 mb-2 line-clamp-2">{photo.description}</p>
+                      <div className="flex items-center gap-2 text-xs text-blue-200">
+                        <User size={12} />
+                        <span>{photo.uploaded_by_name}</span>
+                        <Calendar size={12} className="ml-2" />
+                        <span>{new Date(photo.uploaded_at).toLocaleDateString()}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              )}
-
-              {/* Other Images - Right Side Grid */}
-              {filteredPhotos.length > 1 && (
-                <div
-                  style={{
-                    ...styles.gridImages,
-                    ...(window.innerWidth >= 768 && styles.gridImagesMd),
-                  }}
-                >
-                  {filteredPhotos.slice(1).map((photo, index) => (
-                    <div
-                      key={photo.id}
-                      style={styles.gridImageItem}
-                      onClick={() => setSelectedImage(index + 1)}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-4px)';
-                        e.currentTarget.style.boxShadow = '0 15px 40px -10px rgba(59, 130, 246, 0.3)';
-                        const img = e.currentTarget.querySelector('img');
-                        if (img) img.style.transform = 'scale(1.1)';
-                        const overlay = e.currentTarget.querySelector('.overlay');
-                        if (overlay) (overlay as HTMLElement).style.opacity = '1';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = '0 10px 30px -10px rgba(59, 130, 246, 0.2)';
-                        const img = e.currentTarget.querySelector('img');
-                        if (img) img.style.transform = 'scale(1)';
-                        const overlay = e.currentTarget.querySelector('.overlay');
-                        if (overlay) (overlay as HTMLElement).style.opacity = '0';
-                      }}
-                    >
-                      <img
-                        src={photo.image_url}
-                        alt={photo.title}
-                        style={styles.imageElement}
-                      />
-                      <div className="overlay" style={styles.overlay}>
-                        <div style={styles.overlayContent}>
-                          <h3 style={styles.imageTitle}>{photo.title}</h3>
-                          <p style={styles.imageDescription}>{photo.description}</p>
-                          <p style={styles.imageMeta}>
-                            By {photo.uploaded_by_name} • {new Date(photo.uploaded_at).toLocaleDateString()}
-                          </p>
-                              {/* Lightbox Modal */}
-                              {selectedImage !== null && filteredPhotos[selectedImage] && (
-                                <div style={{
-                                  position: 'fixed',
-                                  top: 0,
-                                  left: 0,
-                                  width: '100vw',
-                                  height: '100vh',
-                                  background: 'rgba(0,0,0,0.85)',
-                                  zIndex: 1000,
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                }}
-                                onClick={() => setSelectedImage(null)}
-                                >
-                                  <div style={{ position: 'relative', maxWidth: 900, width: '90vw', maxHeight: '90vh', background: '#fff', borderRadius: 16, overflow: 'hidden', boxShadow: '0 8px 40px rgba(0,0,0,0.25)' }} onClick={e => e.stopPropagation()}>
-                                    <img 
-                                      src={filteredPhotos[selectedImage].image_url}
-                                      alt={filteredPhotos[selectedImage].title}
-                                      style={{ width: '100%', maxHeight: 500, objectFit: 'contain', background: '#f1f5f9' }}
-                                      loading="lazy"
-                                      width="800"
-                                      height="500"
-                                    />
-                                    <div style={{ padding: 24 }}>
-                                      <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 8 }}>{filteredPhotos[selectedImage].title}</h2>
-                                      <p style={{ fontSize: 15, marginBottom: 8 }}>{filteredPhotos[selectedImage].description}</p>
-                                      <div style={{ fontSize: 13, color: '#64748b' }}>
-                                        By {filteredPhotos[selectedImage].uploaded_by_name} • {new Date(filteredPhotos[selectedImage].uploaded_at).toLocaleDateString()}
-                                      </div>
-                                    </div>
-                                    <button onClick={() => setSelectedImage(null)} style={{ position: 'absolute', top: 12, right: 12, background: '#fff', border: 'none', borderRadius: '50%', width: 36, height: 36, fontSize: 20, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.12)' }} aria-label="Close">×</button>
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* Upload Modal (stub) */}
-                              {showUpload && (
-                                <div style={{
-                                  position: 'fixed',
-                                  top: 0,
-                                  left: 0,
-                                  width: '100vw',
-                                  height: '100vh',
-                                  background: 'rgba(0,0,0,0.7)',
-                                  zIndex: 1000,
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                }}
-                                onClick={() => setShowUpload(false)}
-                                >
-                                  <div style={{ background: '#fff', borderRadius: 12, padding: 32, minWidth: 320, maxWidth: 400, width: '90vw', boxShadow: '0 8px 40px rgba(0,0,0,0.18)' }} onClick={e => e.stopPropagation()}>
-                                    <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 16 }}>Upload Photo</h2>
-                                    <p style={{ fontSize: 15, marginBottom: 16 }}>Photo upload coming soon. (Backend support required.)</p>
-                                    <button onClick={() => setShowUpload(false)} style={{ background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 18px', fontWeight: 600, fontSize: 15, cursor: 'pointer', marginTop: 8 }}>Close</button>
-                                  </div>
-                                </div>
-                              )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              ))}
             </div>
 
-            <div style={{ textAlign: 'center' }}>
+            {/* View All Button */}
+            <div className="text-center mt-12">
               <button
                 onClick={() => navigate('/gallery')}
-                style={styles.viewAllButton}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 8px 25px rgba(37, 99, 235, 0.4)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 15px rgba(37, 99, 235, 0.3)';
-                }}
+                className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-all duration-300 hover:scale-105 shadow-lg"
               >
-                <span>📷</span>
-                View all photos from BITSA events and activities
+                <Camera size={20} />
+                View All Photos
+                <ChevronRight size={20} />
               </button>
             </div>
           </>
         )}
       </div>
 
+      {/* Lightbox Modal */}
+      {selectedImage !== null && filteredPhotos[selectedImage] && (
+        <div 
+          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+          onClick={() => setSelectedImage(null)}
+        >
+          <div 
+            className="relative max-w-5xl w-full bg-white rounded-2xl overflow-hidden shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <img 
+              src={filteredPhotos[selectedImage].image_url}
+              alt={filteredPhotos[selectedImage].title}
+              className="w-full max-h-[70vh] object-contain bg-gray-100"
+            />
+            <div className="p-6 bg-white">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">{filteredPhotos[selectedImage].title}</h2>
+              <p className="text-gray-700 mb-4">{filteredPhotos[selectedImage].description}</p>
+              <div className="flex items-center gap-4 text-sm text-gray-600">
+                <div className="flex items-center gap-1">
+                  <User size={16} />
+                  <span>{filteredPhotos[selectedImage].uploaded_by_name}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Calendar size={16} />
+                  <span>{new Date(filteredPhotos[selectedImage].uploaded_at).toLocaleDateString()}</span>
+                </div>
+              </div>
+            </div>
+            <button 
+              onClick={() => setSelectedImage(null)} 
+              className="absolute top-4 right-4 w-10 h-10 bg-white rounded-full flex items-center justify-center text-2xl font-bold shadow-lg hover:bg-gray-100 transition-colors"
+              aria-label="Close"
+            >
+              <X size={20} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Upload Modal (stub) */}
+      {showUpload && (
+        <div 
+          className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowUpload(false)}
+        >
+          <div 
+            className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Upload Photo</h2>
+            <p className="text-gray-600 mb-6">Photo upload functionality coming soon. Backend support required.</p>
+            <button 
+              onClick={() => setShowUpload(false)} 
+              className="w-full px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
       <style>{`
-        @media (max-width: 767px) {
-          .gallery-responsive > div:first-child {
-            grid-column: span 12 !important;
-            height: 400px !important;
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
           }
-          .gallery-responsive > div:last-child {
-            grid-column: span 12 !important;
+          to {
+            opacity: 1;
+            transform: translateY(0);
           }
+        }
+        
+        .animate-fade-in-up {
+          animation: fadeInUp 0.8s ease-out forwards;
+          opacity: 0;
+        }
+        
+        .animation-delay-200 {
+          animation-delay: 0.2s;
+        }
+        
+        .line-clamp-1 {
+          display: -webkit-box;
+          -webkit-line-clamp: 1;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+        
+        .line-clamp-2 {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
         }
       `}</style>
     </section>

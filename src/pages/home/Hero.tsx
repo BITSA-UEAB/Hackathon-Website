@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Users, Calendar, BookOpen, Award, TrendingUp, Code, Briefcase, ChevronRight, Zap, Shield, Globe, Star, Heart, Coffee, Cpu, Github, Linkedin, Twitter, Mail, Phone, MapPin } from "lucide-react";
+import { ArrowRight, Users, Calendar, BookOpen, Award, TrendingUp, Code, Briefcase, ChevronRight, Zap, Shield, Globe, Star, Github, Linkedin, Twitter, Mail, Phone, MapPin } from "lucide-react";
 import axios from "axios";
 
 // Simplified Button component
@@ -37,7 +37,7 @@ const Hero = () => {
           if (entry.isIntersecting) {
             setVisibleSections((prev) => ({
               ...prev,
-              [(entry.target as HTMLElement).dataset.section]: true,
+              [(entry.target as HTMLElement).dataset.section as string]: true,
             }));
           }
         });
@@ -82,7 +82,6 @@ const Hero = () => {
         setStats(response.data);
       } catch (error) {
         console.error('Error fetching stats:', error);
-        // Keep default values if API fails
       } finally {
         setLoading(false);
       }
@@ -95,7 +94,7 @@ const Hero = () => {
 
   return (
     <section className="min-h-screen bg-white overflow-x-hidden">
-      {/* Hero Section with Working Slider - Stronger Overlay for Text Readability */}
+      {/* Hero Section with Working Slider - Blue Overlay */}
       <div className="relative h-[600px] overflow-hidden">
         {/* Background Slider */}
         {slides.map((slide, index) => (
@@ -113,19 +112,19 @@ const Hero = () => {
           </div>
         ))}
         
-        {/* Darker Overlay for Better Text Readability */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/70"></div>
+        {/* Blue Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/90 via-blue-800/80 to-blue-900/90"></div>
         
         {/* Hero Content */}
         <div className="absolute inset-0 container mx-auto px-4 sm:px-6 lg:px-8 flex items-center">
-          <div className="max-w-3xl text-white transform transition-all duration-1000 translate-y-0 opacity-100">
+          <div className="max-w-3xl text-white">
             <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold mb-4 drop-shadow-lg animate-fade-in-up">
               BITSA
             </h1>
-            <p className="text-xl sm:text-2xl mb-4 text-white/90 drop-shadow animate-fade-in-up animation-delay-200">
+            <p className="text-xl sm:text-2xl mb-4 text-blue-100 drop-shadow animate-fade-in-up animation-delay-200">
               Where Future Tech Leaders Connect, Learn, and Innovate
             </p>
-            <p className="text-lg mb-8 text-white/80 max-w-2xl drop-shadow animate-fade-in-up animation-delay-400">
+            <p className="text-lg mb-8 text-blue-100 max-w-2xl drop-shadow animate-fade-in-up animation-delay-400">
               Join a thriving community of IT students committed to excellence in technology and innovation.
             </p>
             
@@ -133,14 +132,14 @@ const Hero = () => {
             <div className="flex flex-col sm:flex-row gap-4 animate-fade-in-up animation-delay-600">
               <Button
                 onClick={() => navigate("/register")}
-                className="bg-white text-gray-900 hover:bg-gray-100 px-8 py-4 text-lg flex items-center justify-center group shadow-lg hover:scale-105 transition-transform"
+                className="bg-white text-blue-900 hover:bg-blue-50 px-8 py-4 text-lg flex items-center justify-center group shadow-lg hover:scale-105 transition-transform"
               >
                 Join Community
                 <ChevronRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
               <Button
                 onClick={() => navigate("/about")}
-                className="border-2 border-white text-white hover:bg-white/20 px-8 py-4 text-lg backdrop-blur-sm hover:scale-105 transition-transform"
+                className="border-2 border-white text-white hover:bg-white/10 px-8 py-4 text-lg backdrop-blur-sm hover:scale-105 transition-transform"
               >
                 Learn More
               </Button>
@@ -165,12 +164,12 @@ const Hero = () => {
         </div>
       </div>
 
-      {/* Stats Bar - Clean and Simple */}
+      {/* Stats Bar - White with Blue Accents */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 -mt-12 relative z-10">
         <div 
           ref={(el) => (sectionRefs.current[0] = el)}
           data-section="stats"
-          className={`bg-white rounded-xl shadow-xl p-8 grid grid-cols-3 gap-4 max-w-3xl mx-auto border border-gray-100 transform transition-all duration-700 ${
+          className={`bg-white rounded-xl shadow-xl p-8 grid grid-cols-3 gap-4 max-w-3xl mx-auto border border-gray-200 transform transition-all duration-700 ${
             isVisible('stats') ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
           }`}
         >
@@ -227,18 +226,18 @@ const Hero = () => {
           <h3 className="text-2xl font-bold text-gray-900 text-center mb-10">What We Offer</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { icon: Users, title: "Community", description: "Connect with 500+ passionate IT students and mentors", color: "blue" },
-              { icon: Calendar, title: "Events", description: "50+ annual workshops, hackathons, and tech talks", color: "green" },
-              { icon: BookOpen, title: "Resources", description: "Curated learning materials and project guides", color: "purple" },
-              { icon: Zap, title: "Fast-Track", description: "Accelerated skill development programs", color: "orange" },
-              { icon: Shield, title: "Industry Ready", description: "Career-focused training and certification", color: "red" },
-              { icon: Globe, title: "Global Network", description: "Connect with professionals worldwide", color: "indigo" },
-              { icon: Award, title: "Recognition", description: "150+ certificates awarded annually", color: "yellow" },
-              { icon: Briefcase, title: "Placements", description: "85% job placement rate", color: "pink" },
+              { icon: Users, title: "Community", description: "Connect with 500+ passionate IT students", color: "blue" },
+              { icon: Calendar, title: "Events", description: "50+ annual workshops and hackathons", color: "blue" },
+              { icon: BookOpen, title: "Resources", description: "Curated learning materials and guides", color: "blue" },
+              { icon: Zap, title: "Fast-Track", description: "Accelerated skill development programs", color: "blue" },
+              { icon: Shield, title: "Industry Ready", description: "Career-focused training", color: "blue" },
+              { icon: Globe, title: "Global Network", description: "Connect with professionals", color: "blue" },
+              { icon: Award, title: "Recognition", description: "Certificates awarded annually", color: "blue" },
+              { icon: Briefcase, title: "Placements", description: "85% job placement rate", color: "blue" },
             ].map((feature, index) => (
               <div key={index} className="group p-6 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 hover:-translate-y-2">
-                <div className={`w-12 h-12 bg-${feature.color}-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-${feature.color}-600 transition-colors`}>
-                  <feature.icon className={`w-6 h-6 text-${feature.color}-600 group-hover:text-white transition-colors`} />
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-blue-600 transition-colors">
+                  <feature.icon className="w-6 h-6 text-blue-600 group-hover:text-white transition-colors" />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">{feature.title}</h3>
                 <p className="text-sm text-gray-600">{feature.description}</p>
@@ -247,17 +246,17 @@ const Hero = () => {
           </div>
         </div>
 
-        {/* Achievement Section - Light Indigo Background */}
+        {/* Achievement Section - Blue Gradient Background */}
         <div 
           ref={(el) => (sectionRefs.current[3] = el)}
           data-section="achievements"
-          className="bg-indigo-50 rounded-3xl p-12 mb-20 transform transition-all duration-700"
+          className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-3xl p-12 mb-20 transform transition-all duration-700"
           style={{
             transform: isVisible('achievements') ? 'translateY(0)' : 'translateY(40px)',
             opacity: isVisible('achievements') ? 1 : 0
           }}
         >
-          <h3 className="text-2xl font-bold text-gray-900 text-center mb-10">Our Impact in Numbers</h3>
+          <h3 className="text-2xl font-bold text-white text-center mb-10">Our Impact in Numbers</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
               { icon: Award, value: '150+', label: 'Certificates Awarded' },
@@ -266,17 +265,17 @@ const Hero = () => {
               { icon: Code, value: '200+', label: 'Internships' },
             ].map((item, index) => (
               <div key={index} className="text-center group">
-                <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-indigo-600 transition-colors shadow-md">
-                  <item.icon className="w-8 h-8 text-indigo-600 group-hover:text-white transition-colors" />
+                <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-white/20 transition-colors backdrop-blur-sm">
+                  <item.icon className="w-8 h-8 text-white" />
                 </div>
-                <div className="text-3xl font-bold text-gray-900 mb-1">{item.value}</div>
-                <div className="text-sm text-gray-600">{item.label}</div>
+                <div className="text-3xl font-bold text-white mb-1">{item.value}</div>
+                <div className="text-sm text-blue-200">{item.label}</div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Testimonials Section - White Background */}
+        {/* Testimonials Section - White Cards on Gray Background */}
         <div 
           ref={(el) => (sectionRefs.current[4] = el)}
           data-section="testimonials"
@@ -293,24 +292,21 @@ const Hero = () => {
                 name: "Sarah Johnson",
                 role: "CS Student",
                 quote: "BITSA transformed my college experience. The workshops and mentorship helped me land my dream internship.",
-                image: "/avatar1.jpg"
               },
               {
                 name: "Michael Chen",
                 role: "Software Engineer",
                 quote: "The community here is incredible. I've made lifelong friends and learned so much from peer collaborations.",
-                image: "/avatar2.jpg"
               },
               {
                 name: "Priya Patel",
                 role: "Tech Lead",
                 quote: "From hackathon participant to mentor - BITSA's supportive environment helped me grow at every stage.",
-                image: "/avatar3.jpg"
               }
             ].map((testimonial, index) => (
-              <div key={index} className="p-6 bg-white rounded-xl border border-gray-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-2">
+              <div key={index} className="p-6 bg-gray-50 rounded-xl border border-gray-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-2">
                 <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-indigo-600 rounded-full mr-4 overflow-hidden flex items-center justify-center text-white font-bold text-lg">
+                  <div className="w-12 h-12 bg-blue-600 rounded-full mr-4 flex items-center justify-center text-white font-bold text-lg">
                     {testimonial.name.charAt(0)}
                   </div>
                   <div>
@@ -321,7 +317,7 @@ const Hero = () => {
                 <p className="text-gray-700 italic">"{testimonial.quote}"</p>
                 <div className="flex mt-3">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
+                    <Star key={i} className="w-4 h-4 text-blue-400 fill-current" />
                   ))}
                 </div>
               </div>
@@ -329,11 +325,11 @@ const Hero = () => {
           </div>
         </div>
 
-        {/* Upcoming Events - Light Green Background */}
+        {/* Upcoming Events - Light Gray Background */}
         <div 
           ref={(el) => (sectionRefs.current[5] = el)}
           data-section="events"
-          className="mb-20 p-8 bg-green-50 rounded-3xl transform transition-all duration-700"
+          className="mb-20 p-8 bg-gray-100 rounded-3xl transform transition-all duration-700"
           style={{
             transform: isVisible('events') ? 'translateY(0)' : 'translateY(40px)',
             opacity: isVisible('events') ? 1 : 0
@@ -341,7 +337,7 @@ const Hero = () => {
         >
           <div className="flex justify-between items-center mb-8">
             <h3 className="text-2xl font-bold text-gray-900">Upcoming Events</h3>
-            <button className="text-green-600 hover:text-green-700 font-medium flex items-center">
+            <button className="text-blue-600 hover:text-blue-700 font-medium flex items-center">
               View All <ChevronRight className="w-4 h-4 ml-1" />
             </button>
           </div>
@@ -352,16 +348,16 @@ const Hero = () => {
               { title: "Tech Career Fair", date: "March 25, 2024", time: "10:00 AM", spots: 100 },
               { title: "Cloud Computing Seminar", date: "March 30, 2024", time: "3:00 PM", spots: 30 },
             ].map((event, index) => (
-              <div key={index} className="flex items-center p-4 bg-white rounded-xl border border-green-200 hover:border-green-400 transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
-                <div className="w-16 h-16 bg-green-100 rounded-lg flex flex-col items-center justify-center mr-4">
-                  <span className="text-xl font-bold text-green-600">{event.date.split(' ')[1]}</span>
-                  <span className="text-xs text-green-600">{event.date.split(' ')[0]}</span>
+              <div key={index} className="flex items-center p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+                <div className="w-16 h-16 bg-blue-100 rounded-lg flex flex-col items-center justify-center mr-4">
+                  <span className="text-xl font-bold text-blue-600">{event.date.split(' ')[1]}</span>
+                  <span className="text-xs text-blue-600">{event.date.split(' ')[0]}</span>
                 </div>
                 <div className="flex-1">
                   <h4 className="font-semibold text-gray-900">{event.title}</h4>
                   <p className="text-sm text-gray-600">{event.time} • {event.spots} spots left</p>
                 </div>
-                <button className="text-green-600 hover:text-green-700">
+                <button className="text-blue-600 hover:text-blue-700">
                   <ChevronRight className="w-5 h-5" />
                 </button>
               </div>
@@ -369,11 +365,11 @@ const Hero = () => {
           </div>
         </div>
 
-        {/* Partners Section - Light Purple Background */}
+        {/* Partners Section - White Background with Gray Borders */}
         <div 
           ref={(el) => (sectionRefs.current[6] = el)}
           data-section="partners"
-          className="mb-20 p-8 bg-purple-50 rounded-3xl transform transition-all duration-700"
+          className="mb-20 p-8 bg-white rounded-3xl border border-gray-200 transform transition-all duration-700"
           style={{
             transform: isVisible('partners') ? 'translateY(0)' : 'translateY(40px)',
             opacity: isVisible('partners') ? 1 : 0
@@ -382,18 +378,18 @@ const Hero = () => {
           <h3 className="text-2xl font-bold text-gray-900 text-center mb-8">Our Partners</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
             {[1,2,3,4,5,6].map((i) => (
-              <div key={i} className="h-16 bg-white rounded-lg flex items-center justify-center text-purple-400 font-medium border border-purple-200 hover:border-purple-400 hover:shadow-md transition-all hover:-translate-y-1">
+              <div key={i} className="h-16 bg-gray-50 rounded-lg flex items-center justify-center text-gray-500 font-medium border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all hover:-translate-y-1">
                 Partner {i}
               </div>
             ))}
           </div>
         </div>
 
-        {/* FAQ Section - Light Orange Background */}
+        {/* FAQ Section - Light Blue Background */}
         <div 
           ref={(el) => (sectionRefs.current[7] = el)}
           data-section="faq"
-          className="mb-20 p-8 bg-orange-50 rounded-3xl transform transition-all duration-700"
+          className="mb-20 p-8 bg-blue-50 rounded-3xl transform transition-all duration-700"
           style={{
             transform: isVisible('faq') ? 'translateY(0)' : 'translateY(40px)',
             opacity: isVisible('faq') ? 1 : 0
@@ -407,7 +403,7 @@ const Hero = () => {
               { q: "Can non-IT students join?", a: "Yes! While we focus on IT, we welcome all students interested in technology." },
               { q: "Is there a membership fee?", a: "No, BITSA membership is completely free for students." },
             ].map((faq, index) => (
-              <div key={index} className="bg-white border border-orange-200 rounded-lg p-4 hover:border-orange-400 hover:shadow-md transition-all hover:-translate-y-1">
+              <div key={index} className="bg-white border border-blue-200 rounded-lg p-4 hover:border-blue-400 hover:shadow-md transition-all hover:-translate-y-1">
                 <h4 className="font-semibold text-gray-900 mb-2">{faq.q}</h4>
                 <p className="text-gray-600">{faq.a}</p>
               </div>
@@ -415,11 +411,11 @@ const Hero = () => {
           </div>
         </div>
 
-        {/* Newsletter Section - Gradient Background */}
+        {/* Newsletter Section - Blue Gradient Background */}
         <div 
           ref={(el) => (sectionRefs.current[8] = el)}
           data-section="newsletter"
-          className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-3xl p-12 text-center text-white mb-20 transform transition-all duration-700"
+          className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-3xl p-12 text-center text-white mb-20 transform transition-all duration-700"
           style={{
             transform: isVisible('newsletter') ? 'translateY(0)' : 'translateY(40px)',
             opacity: isVisible('newsletter') ? 1 : 0
@@ -491,7 +487,7 @@ const Hero = () => {
           </div>
         </div>
 
-        {/* Final CTA - White Background */}
+        {/* Final CTA - White Background with Blue Border */}
         <div 
           ref={(el) => (sectionRefs.current[10] = el)}
           data-section="final-cta"
