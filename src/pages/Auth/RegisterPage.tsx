@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "@/components/ui/sonner";
 import { Loader2, Shield, Zap, Users, CheckCircle2, Eye, EyeOff, Lock, Mail, User, ArrowRight, ArrowLeft } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
@@ -97,7 +98,6 @@ const RegisterPage = () => {
     setIsLoading(true);
     setError("");
     setSuccess("");
-
     try {
       const result = await registerUser({
         name: data.name,
@@ -105,20 +105,23 @@ const RegisterPage = () => {
         password: data.password,
         confirmPassword: data.confirmPassword,
       });
-
       if (result === true) {
         setSuccess("Registration successful! Redirecting to login...");
+        toast.success("Registration successful! Redirecting to login...");
         reset();
         setTimeout(() => {
           navigate("/login");
         }, 2000);
       } else if (typeof result === "string") {
         setError(result);
+        toast.error(result);
       } else {
         setError("Registration failed. Please try again.");
+        toast.error("Registration failed. Please try again.");
       }
     } catch (err) {
       setError("An unexpected error occurred. Please try again later.");
+      toast.error("An unexpected error occurred. Please try again later.");
     } finally {
       setIsLoading(false);
     }
@@ -387,8 +390,10 @@ const RegisterPage = () => {
 
               <Button 
                 type="submit" 
-                className="w-full h-11 text-base font-semibold bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity shadow-lg" 
+                className="w-full h-11 text-base font-semibold bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity shadow-lg flex items-center justify-center disabled:opacity-70" 
                 disabled={isLoading}
+                aria-busy={isLoading}
+                aria-label="Create account"
               >
                 {isLoading ? (
                   <>

@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -89,56 +90,251 @@ interface Leadership {
 const AdminDashboard = () => {
   const { user, isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
+    // Loading state for async actions
+    const [loading, setLoading] = useState(false);
+        const [addUserDialogOpen, setAddUserDialogOpen] = useState(false);
+        const [newUser, setNewUser] = useState({
+          first_name: '',
+          last_name: '',
+          email: '',
+          password: '',
+          password_confirm: ''
+        });
+    // State for gallery photos
+    const [galleryPhotos, setGalleryPhotos] = useState<Photo[]>([]);
+    // State for upload photo dialog
+    const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+    // State for new photo form
+    const [newPhoto, setNewPhoto] = useState({
+      title: '',
+      description: '',
+      image: null as File | null
+    });
+    // State for edit photo dialog
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    // State for selected photo
+    const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
+    // State for editing photo
+    const [editPhoto, setEditPhoto] = useState({
+      title: '',
+      description: '',
+      image: null as File | null
+    });
+    // State for blog posts
+    const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+    // State for add blog dialog
+    const [addBlogDialogOpen, setAddBlogDialogOpen] = useState(false);
+    // State for new blog post
+    const [newBlogPost, setNewBlogPost] = useState({
+      title: '',
+      content: '',
+      excerpt: '',
+      category: 'General',
+      tags: '',
+      read_time: 5,
+      image: null as File | null
+    });
+    // State for edit blog dialog
+    const [editBlogDialogOpen, setEditBlogDialogOpen] = useState(false);
+    // State for selected blog post
+    const [selectedBlogPost, setSelectedBlogPost] = useState<BlogPost | null>(null);
+    // State for editing blog post
+    const [editBlogPost, setEditBlogPost] = useState({
+      title: '',
+      content: '',
+      excerpt: '',
+      category: 'General',
+      tags: '',
+      read_time: 5,
+      image: null as File | null
+    });
+    // State for events
+    const [events, setEvents] = useState<Event[]>([]);
+    // State for add event dialog
+    const [addEventDialogOpen, setAddEventDialogOpen] = useState(false);
+    // State for selected event
+    const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+    // State for edit event dialog
+    const [editEventDialogOpen, setEditEventDialogOpen] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
-  const [galleryPhotos, setGalleryPhotos] = useState<Photo[]>([]);
-  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [addUserDialogOpen, setAddUserDialogOpen] = useState(false);
-  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
-  const [newUser, setNewUser] = useState({
-    first_name: '',
-    last_name: '',
-    email: '',
-    password: '',
-    password_confirm: ''
-  });
-  const [newPhoto, setNewPhoto] = useState({
-    title: '',
-    description: '',
-    image: null as File | null
-  });
-  const [editPhoto, setEditPhoto] = useState({
-    title: '',
-    description: '',
-    image: null as File | null
-  });
-  const [addBlogDialogOpen, setAddBlogDialogOpen] = useState(false);
-  const [editBlogDialogOpen, setEditBlogDialogOpen] = useState(false);
-  const [selectedBlogPost, setSelectedBlogPost] = useState<BlogPost | null>(null);
-  const [newBlogPost, setNewBlogPost] = useState({
-    title: '',
-    content: '',
-    excerpt: '',
-    category: 'General',
-    tags: '',
-    read_time: 5,
-    image: null as File | null
-  });
-  const [editBlogPost, setEditBlogPost] = useState({
-    title: '',
-    content: '',
-    excerpt: '',
-    category: 'General',
-    tags: '',
-    read_time: 5,
-    image: null as File | null
-  });
-  const [events, setEvents] = useState<Event[]>([]);
-  const [addEventDialogOpen, setAddEventDialogOpen] = useState(false);
-  const [editEventDialogOpen, setEditEventDialogOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortKey, setSortKey] = useState<'name'|'email'|'role'|'status'|'date_joined'>('name');
+  const [sortOrder, setSortOrder] = useState<'asc'|'desc'>('asc');
+  const [currentPage, setCurrentPage] = useState(1);
+  const USERS_PER_PAGE = 8;
+    // Search, sort, and paginate users
+    const filteredUsers = users.filter(u =>
+      u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      u.email.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    const sortedUsers = [...filteredUsers].sort((a, b) => {
+      let aVal = a[sortKey];
+      let bVal = b[sortKey];
+      if (sortKey === 'date_joined') {
+        aVal = new Date(aVal).getTime();
+        bVal = new Date(bVal).getTime();
+      }
+      if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+    const totalPages = Math.ceil(sortedUsers.length / USERS_PER_PAGE);
+    const paginatedUsers = sortedUsers.slice((currentPage-1)*USERS_PER_PAGE, currentPage*USERS_PER_PAGE);
+
+    const handleSort = (key) => {
+      if (sortKey === key) setSortOrder(order => order === 'asc' ? 'desc' : 'asc');
+      else {
+        setSortKey(key);
+        setSortOrder('asc');
+      }
+    };
+  const [selectedUserIds, setSelectedUserIds] = useState<number[]>([]);
+  const [bulkActionDialogOpen, setBulkActionDialogOpen] = useState(false);
+  const [bulkActionType, setBulkActionType] = useState<'block' | 'unblock' | null>(null);
+    // Bulk select helpers
+    const allSelected = users.length > 0 && selectedUserIds.length === users.length;
+    const isIndeterminate = selectedUserIds.length > 0 && !allSelected;
+    const toggleSelectAll = () => {
+      if (allSelected) setSelectedUserIds([]);
+      else setSelectedUserIds(users.map(u => u.id));
+    };
+    const toggleSelectUser = (id: number) => {
+      setSelectedUserIds((prev) => prev.includes(id) ? prev.filter(uid => uid !== id) : [...prev, id]);
+    };
+    const handleBulkBlock = () => {
+                // Loading state for async actions
+                {loading ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>
+                          <div className="h-4 w-4 bg-gray-200 rounded animate-pulse" />
+                        </TableHead>
+                        <TableHead><div className="h-4 w-20 bg-gray-200 rounded animate-pulse" /></TableHead>
+                        <TableHead><div className="h-4 w-28 bg-gray-200 rounded animate-pulse" /></TableHead>
+                        <TableHead><div className="h-4 w-16 bg-gray-200 rounded animate-pulse" /></TableHead>
+                        <TableHead><div className="h-4 w-16 bg-gray-200 rounded animate-pulse" /></TableHead>
+                        <TableHead><div className="h-4 w-16 bg-gray-200 rounded animate-pulse" /></TableHead>
+                        <TableHead><div className="h-4 w-16 bg-gray-200 rounded animate-pulse" /></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {[...Array(USERS_PER_PAGE)].map((_, i) => (
+                        <TableRow key={i}>
+                          <TableCell><div className="h-4 w-4 bg-gray-200 rounded animate-pulse" /></TableCell>
+                          <TableCell><div className="h-4 w-20 bg-gray-200 rounded animate-pulse" /></TableCell>
+                          <TableCell><div className="h-4 w-28 bg-gray-200 rounded animate-pulse" /></TableCell>
+                          <TableCell><div className="h-4 w-16 bg-gray-200 rounded animate-pulse" /></TableCell>
+                          <TableCell><div className="h-4 w-16 bg-gray-200 rounded animate-pulse" /></TableCell>
+                          <TableCell><div className="h-4 w-16 bg-gray-200 rounded animate-pulse" /></TableCell>
+                          <TableCell><div className="h-4 w-16 bg-gray-200 rounded animate-pulse" /></TableCell>
+                        </TableRow>
+                      ))} 
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <>
+                    {/* Search bar */}
+                    <div className="flex items-center gap-3 mb-3">
+                      <Input
+                        placeholder="Search users..."
+                        value={searchQuery}
+                        onChange={e => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                        className="w-64"
+                        aria-label="Search users"
+                      />
+                    </div>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>
+                            <Checkbox
+                                checked={allSelected}
+                                onCheckedChange={toggleSelectAll}
+                                aria-label="Select all users"
+                              />
+                          </TableHead>
+                          <TableHead className="cursor-pointer select-none" onClick={() => handleSort('name')}>
+                            Name {sortKey === 'name' && (sortOrder === 'asc' ? '▲' : '▼')}
+                          </TableHead>
+                          <TableHead className="cursor-pointer select-none" onClick={() => handleSort('email')}>
+                            Email {sortKey === 'email' && (sortOrder === 'asc' ? '▲' : '▼')}
+                          </TableHead>
+                          <TableHead className="cursor-pointer select-none" onClick={() => handleSort('role')}>
+                            Role {sortKey === 'role' && (sortOrder === 'asc' ? '▲' : '▼')}
+                          </TableHead>
+                          <TableHead className="cursor-pointer select-none" onClick={() => handleSort('status')}>
+                            Status
+                          </TableHead>
+                          <TableHead className="cursor-pointer select-none" onClick={() => handleSort('date_joined')}>
+                            Joined {sortKey === 'date_joined' && (sortOrder === 'asc' ? '▲' : '▼')}
+                          </TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {paginatedUsers.map((user) => (
+                            <TableRow key={user.id} className={selectedUserIds.includes(user.id) ? 'bg-blue-50' : ''}>
+                            <TableCell>
+                              <Checkbox
+                                  checked={selectedUserIds.includes(user.id)}
+                                  onCheckedChange={() => toggleSelectUser(user.id)}
+                                  aria-label={`Select user ${user.name}`}
+                                />
+                            </TableCell>
+                            <TableCell className="font-medium">{user.name}</TableCell>
+                            <TableCell>{user.email}</TableCell>
+                            <TableCell>
+                              <Badge variant={user.is_staff ? "default" : "secondary"}>
+                                {user.role}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={user.is_active ? "default" : "destructive"}>
+                                {user.is_active ? "Active" : "Blocked"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>{new Date(user.date_joined).toLocaleDateString()}</TableCell>
+                            <TableCell>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => toggleUserBlock(user.id)}
+                                className={user.is_active ? "text-red-600 hover:text-red-700" : "text-green-600 hover:text-green-700"}
+                              >
+                                {user.is_active ? (
+                                  <>
+                                    <Ban className="h-4 w-4 mr-1" />
+                                    Block
+                                  </>
+                                ) : (
+                                  <>
+                                    <CheckCircle className="h-4 w-4 mr-1" />
+                                    Unblock
+                                  </>
+                                )}
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))} 
+                      </TableBody>
+                    </Table>
+                    {/* Pagination controls */}
+                    <div className="flex items-center justify-between mt-4">
+                      <span className="text-sm text-muted-foreground">
+                        Page {currentPage} of {totalPages}
+                      </span>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" onClick={() => setCurrentPage(p => Math.max(1, p-1))} disabled={currentPage === 1}>
+                          Previous
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => setCurrentPage(p => Math.min(totalPages, p+1))} disabled={currentPage === totalPages}>
+                          Next
+                        </Button>
+                      </div>
+                    </div>
+                  </>
+                )}
   const [newEvent, setNewEvent] = useState({
     title: '',
     description: '',
@@ -994,12 +1190,24 @@ useEffect(() => {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="users">Users</TabsTrigger>
-            <TabsTrigger value="leadership">Leadership</TabsTrigger>
-            <TabsTrigger value="content">Content</TabsTrigger>
-            <TabsTrigger value="events">Events</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
+            <TabsTrigger value="overview">
+              <BarChart3 className="inline-block mr-2 w-4 h-4" /> Overview
+            </TabsTrigger>
+            <TabsTrigger value="users">
+              <Users className="inline-block mr-2 w-4 h-4" /> Users
+            </TabsTrigger>
+            <TabsTrigger value="leadership">
+              <Crown className="inline-block mr-2 w-4 h-4" /> Leadership
+            </TabsTrigger>
+            <TabsTrigger value="content">
+              <FileText className="inline-block mr-2 w-4 h-4" /> Content
+            </TabsTrigger>
+            <TabsTrigger value="events">
+              <Calendar className="inline-block mr-2 w-4 h-4" /> Events
+            </TabsTrigger>
+            <TabsTrigger value="settings">
+              <Settings className="inline-block mr-2 w-4 h-4" /> Settings
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -1172,6 +1380,13 @@ useEffect(() => {
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead>
+                          <Checkbox
+                            checked={allSelected}
+                            onCheckedChange={toggleSelectAll}
+                            aria-label="Select all users"
+                          />
+                        </TableHead>
                         <TableHead>Name</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead>Role</TableHead>
@@ -1183,6 +1398,13 @@ useEffect(() => {
                     <TableBody>
                       {users.map((user) => (
                         <TableRow key={user.id}>
+                          <TableCell>
+                            <Checkbox
+                              checked={selectedUserIds.includes(user.id)}
+                              onCheckedChange={() => toggleSelectUser(user.id)}
+                              aria-label={`Select user ${user.name}`}
+                            />
+                          </TableCell>
                           <TableCell className="font-medium">{user.name}</TableCell>
                           <TableCell>{user.email}</TableCell>
                           <TableCell>
@@ -1218,6 +1440,38 @@ useEffect(() => {
                           </TableCell>
                         </TableRow>
                       ))}
+                                      {/* Bulk actions bar */}
+                                      {selectedUserIds.length > 0 && (
+                                        <div className="flex items-center gap-3 mt-4">
+                                          <span className="text-sm">{selectedUserIds.length} selected</span>
+                                          <Button size="sm" variant="destructive" onClick={handleBulkBlock}>
+                                            <Ban className="h-4 w-4 mr-1" /> Block Selected
+                                          </Button>
+                                          {/* <Button size="sm" variant="default" onClick={handleBulkUnblock}>
+                                            <CheckCircle className="h-4 w-4 mr-1" /> Unblock Selected
+                                          </Button> */}
+                                        </div>
+                                      )}
+
+                                      {/* Confirmation Dialog */}
+                                      <Dialog open={bulkActionDialogOpen} onOpenChange={setBulkActionDialogOpen}>
+                                        <DialogContent>
+                                          <DialogHeader>
+                                            <DialogTitle>Confirm Bulk {bulkActionType === 'block' ? 'Block' : 'Unblock'}</DialogTitle>
+                                            <DialogDescription>
+                                              Are you sure you want to {bulkActionType} {selectedUserIds.length} selected user(s)?
+                                            </DialogDescription>
+                                          </DialogHeader>
+                                          <div className="flex gap-3 mt-4">
+                                            {/* <Button variant="destructive" onClick={confirmBulkAction}>
+                                              Yes, {bulkActionType === 'block' ? 'Block' : 'Unblock'}
+                                            </Button> */}
+                                            <Button variant="outline" onClick={() => setBulkActionDialogOpen(false)}>
+                                              Cancel
+                                            </Button>
+                                          </div>
+                                        </DialogContent>
+                                      </Dialog>
                     </TableBody>
                   </Table>
                 )}
@@ -2206,4 +2460,5 @@ useEffect(() => {
   );
 };
 
+}
 export default AdminDashboard;

@@ -66,7 +66,10 @@ class LeadershipListSerializer(serializers.ModelSerializer):
             'position',
             'student_id',
             'image_url',
+            'leadership_type',
+            'is_active',
         ]
+
     
     def get_image_url(self, obj):
         """Get the full image URL or return None"""
