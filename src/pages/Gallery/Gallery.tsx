@@ -16,6 +16,12 @@ const Gallery = () => {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [category, setCategory] = useState<string>("");
+  const [showUpload, setShowUpload] = useState(false);
+  // Get unique categories from photos
+  const categories = Array.from(new Set(photos.map((p) => p.category).filter(Boolean)));
+  // Filter photos by category
+  const filteredPhotos = category ? photos.filter((p) => p.category === category) : photos;
 
   useEffect(() => {
     const fetchPhotos = async () => {
@@ -177,6 +183,39 @@ const Gallery = () => {
           </p>
         </div>
 
+        {/* Gallery Controls */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+          <div>
+            <label style={{ fontSize: 14, fontWeight: 500, marginRight: 8 }}>Category:</label>
+            <select
+              value={category}
+              onChange={e => setCategory(e.target.value)}
+              style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 14 }}
+            >
+              <option value="">All</option>
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+          </div>
+          <button
+            style={{
+              background: 'linear-gradient(135deg, #2563eb, #3b82f6)',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 8,
+              padding: '8px 18px',
+              fontWeight: 600,
+              fontSize: 15,
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(37,99,235,0.15)'
+            }}
+            onClick={() => setShowUpload(true)}
+          >
+            Upload Photo
+          </button>
+        </div>
+
         {loading ? (
           <div style={styles.loadingContainer}>
             <p style={styles.loadingText}>Loading photos...</p>
@@ -199,7 +238,7 @@ const Gallery = () => {
               className="gallery-responsive"
             >
               {/* Featured/First Image - Left Side */}
-              {photos[0] && (
+              {filteredPhotos[0] && (
                 <div
                   style={{
                     ...styles.featuredImage,
@@ -224,16 +263,16 @@ const Gallery = () => {
                   }}
                 >
                   <img
-                    src={photos[0].image_url}
-                    alt={photos[0].title}
+                    src={filteredPhotos[0].image_url}
+                    alt={filteredPhotos[0].title}
                     style={styles.imageElement}
                   />
                   <div className="overlay" style={styles.overlay}>
                     <div style={styles.overlayContent}>
-                      <h3 style={styles.imageTitle}>{photos[0].title}</h3>
-                      <p style={styles.imageDescription}>{photos[0].description}</p>
+                      <h3 style={styles.imageTitle}>{filteredPhotos[0].title}</h3>
+                      <p style={styles.imageDescription}>{filteredPhotos[0].description}</p>
                       <p style={styles.imageMeta}>
-                        By {photos[0].uploaded_by_name} • {new Date(photos[0].uploaded_at).toLocaleDateString()}
+                        By {filteredPhotos[0].uploaded_by_name} • {new Date(filteredPhotos[0].uploaded_at).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
@@ -241,14 +280,14 @@ const Gallery = () => {
               )}
 
               {/* Other Images - Right Side Grid */}
-              {photos.length > 1 && (
+              {filteredPhotos.length > 1 && (
                 <div
                   style={{
                     ...styles.gridImages,
                     ...(window.innerWidth >= 768 && styles.gridImagesMd),
                   }}
                 >
-                  {photos.slice(1).map((photo, index) => (
+                  {filteredPhotos.slice(1).map((photo, index) => (
                     <div
                       key={photo.id}
                       style={styles.gridImageItem}
@@ -282,6 +321,66 @@ const Gallery = () => {
                           <p style={styles.imageMeta}>
                             By {photo.uploaded_by_name} • {new Date(photo.uploaded_at).toLocaleDateString()}
                           </p>
+                              {/* Lightbox Modal */}
+                              {selectedImage !== null && filteredPhotos[selectedImage] && (
+                                <div style={{
+                                  position: 'fixed',
+                                  top: 0,
+                                  left: 0,
+                                  width: '100vw',
+                                  height: '100vh',
+                                  background: 'rgba(0,0,0,0.85)',
+                                  zIndex: 1000,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                }}
+                                onClick={() => setSelectedImage(null)}
+                                >
+                                  <div style={{ position: 'relative', maxWidth: 900, width: '90vw', maxHeight: '90vh', background: '#fff', borderRadius: 16, overflow: 'hidden', boxShadow: '0 8px 40px rgba(0,0,0,0.25)' }} onClick={e => e.stopPropagation()}>
+                                    <img 
+                                      src={filteredPhotos[selectedImage].image_url}
+                                      alt={filteredPhotos[selectedImage].title}
+                                      style={{ width: '100%', maxHeight: 500, objectFit: 'contain', background: '#f1f5f9' }}
+                                      loading="lazy"
+                                      width="800"
+                                      height="500"
+                                    />
+                                    <div style={{ padding: 24 }}>
+                                      <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 8 }}>{filteredPhotos[selectedImage].title}</h2>
+                                      <p style={{ fontSize: 15, marginBottom: 8 }}>{filteredPhotos[selectedImage].description}</p>
+                                      <div style={{ fontSize: 13, color: '#64748b' }}>
+                                        By {filteredPhotos[selectedImage].uploaded_by_name} • {new Date(filteredPhotos[selectedImage].uploaded_at).toLocaleDateString()}
+                                      </div>
+                                    </div>
+                                    <button onClick={() => setSelectedImage(null)} style={{ position: 'absolute', top: 12, right: 12, background: '#fff', border: 'none', borderRadius: '50%', width: 36, height: 36, fontSize: 20, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.12)' }} aria-label="Close">×</button>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Upload Modal (stub) */}
+                              {showUpload && (
+                                <div style={{
+                                  position: 'fixed',
+                                  top: 0,
+                                  left: 0,
+                                  width: '100vw',
+                                  height: '100vh',
+                                  background: 'rgba(0,0,0,0.7)',
+                                  zIndex: 1000,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                }}
+                                onClick={() => setShowUpload(false)}
+                                >
+                                  <div style={{ background: '#fff', borderRadius: 12, padding: 32, minWidth: 320, maxWidth: 400, width: '90vw', boxShadow: '0 8px 40px rgba(0,0,0,0.18)' }} onClick={e => e.stopPropagation()}>
+                                    <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 16 }}>Upload Photo</h2>
+                                    <p style={{ fontSize: 15, marginBottom: 16 }}>Photo upload coming soon. (Backend support required.)</p>
+                                    <button onClick={() => setShowUpload(false)} style={{ background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 18px', fontWeight: 600, fontSize: 15, cursor: 'pointer', marginTop: 8 }}>Close</button>
+                                  </div>
+                                </div>
+                              )}
                         </div>
                       </div>
                     </div>

@@ -1,3 +1,4 @@
+
 import Navbar from "@/components/Navbar";
 import Hero from "@/pages/home/Hero";
 import About from "@/components/About";
@@ -7,16 +8,19 @@ import Gallery from "@/pages/Gallery/Gallery";
 import Contact from "@/pages/contact/Contact";
 import Footer from "@/pages/home/Footer";
 
+
 const Index = () => {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white text-gray-900">
       <Navbar />
-      <Hero />
-      <About />
-      <Events />
-      <Blog />
-      <Gallery />
-      <Contact />
+      <main>
+        <Hero />
+        <About />
+        <Events />
+        <Blog />
+        <Gallery />
+        <Contact />
+      </main>
       <Footer />
     </div>
   );

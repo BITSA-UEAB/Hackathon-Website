@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { toast } from "@/components/ui/sonner";
 import { Loader2, Shield, Zap, Users, TrendingUp, CheckCircle2, Lock, Mail, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 const loginSchema = z.object({
@@ -67,20 +68,21 @@ const LoginPage = () => {
   const onSubmit = async (data: LoginForm) => {
     setIsLoading(true);
     setError("");
-
     try {
       const user = await login({
         email: data.email,
         password: data.password,
       });
-
       if (user) {
+        toast.success("Login successful! Welcome back.");
         navigate("/");
       } else {
         setError("Invalid email or password. Please check your credentials and try again.");
+        toast.error("Invalid email or password. Please check your credentials and try again.");
       }
     } catch (err) {
       setError("An error occurred during login. Please try again later.");
+      toast.error("An error occurred during login. Please try again later.");
     } finally {
       setIsLoading(false);
     }

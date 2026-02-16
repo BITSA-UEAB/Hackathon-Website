@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useTheme } from "@/contexts/ThemeContext";
+import { Switch } from "@/components/ui/switch";
 import { Menu, X, User, LogOut, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
@@ -17,6 +19,7 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
   const location = useLocation();
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -36,11 +39,14 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-      scrolled 
-        ? 'bg-white/98 backdrop-blur-2xl shadow-lg border-b border-blue-200/50' 
-        : 'bg-white/95 backdrop-blur-xl border-b border-blue-100/30 shadow-sm'
-    }`}>
+    <nav
+      className={`sticky top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        scrolled
+          ? 'bg-white/98 dark:bg-slate-900/95 backdrop-blur-2xl shadow-lg border-b border-blue-200/50 dark:border-slate-800'
+          : 'bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl border-b border-blue-100/30 dark:border-slate-800/60 shadow-sm'
+      }`}
+      aria-label="Main navigation"
+    >
       <div className="container mx-auto px-4 lg:px-6">
         <div className="flex items-center justify-between h-20">
           {/* Logo with Enhanced Animation */}
@@ -63,30 +69,39 @@ const Navbar = () => {
                 <Link
                   key={link.path}
                   to={link.path}
-                  className="relative group px-4 py-2"
+                  aria-current={isActive ? "page" : undefined}
+                  aria-label={link.label}
+                  className={`relative group px-4 py-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded transition-shadow duration-200 ${
+                    isActive ? 'font-bold' : ''
+                  }`}
                 >
                   <span className={`text-base font-semibold tracking-wide transition-colors duration-300 ${
-                    isActive 
-                      ? 'text-blue-700' 
-                      : 'text-gray-700 group-hover:text-blue-600'
+                    isActive
+                      ? 'text-blue-800 dark:text-blue-300 drop-shadow-[0_1px_0_rgba(0,0,0,0.12)]'
+                      : 'text-gray-700 group-hover:text-blue-600 dark:text-gray-200'
                   }`}>
                     {link.label}
                   </span>
                   <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-blue-500 to-blue-700 transform origin-left transition-transform duration-300 ${
-                    isActive 
-                      ? 'scale-x-100' 
+                    isActive
+                      ? 'scale-x-100'
                       : 'scale-x-0 group-hover:scale-x-100'
                   }`}></span>
                   {isActive && (
-                    <span className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse"></span>
+                    <span className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-blue-700 border-2 border-white dark:border-gray-900 rounded-full animate-pulse shadow-lg"></span>
                   )}
                 </Link>
               );
             })}
           </div>
 
-          {/* Auth Section - Desktop */}
+          {/* Dark Mode Toggle - Desktop */}
           <div className="hidden lg:flex items-center space-x-4">
+            <div className="flex items-center mr-2">
+              <span className="text-xs text-gray-500 mr-2">🌞</span>
+              <Switch checked={theme === 'dark'} onCheckedChange={toggleTheme} aria-label="Toggle dark mode" />
+              <span className="text-xs text-gray-500 ml-2">🌙</span>
+            </div>
             {isAuthenticated ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -191,6 +206,12 @@ const Navbar = () => {
         <div className={`lg:hidden overflow-hidden transition-all duration-500 ease-in-out ${
           isOpen ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
         }`}>
+          {/* Dark Mode Toggle - Mobile */}
+          <div className="flex items-center justify-end mb-2">
+            <span className="text-xs text-gray-500 mr-2">🌞</span>
+            <Switch checked={theme === 'dark'} onCheckedChange={toggleTheme} aria-label="Toggle dark mode" />
+            <span className="text-xs text-gray-500 ml-2">🌙</span>
+          </div>
           <div className="py-6 space-y-2 border-t border-blue-100">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.path;

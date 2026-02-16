@@ -1,74 +1,88 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Users, Calendar, BookOpen, Star, Zap, Shield, Globe, Award, TrendingUp, Code, Briefcase } from "lucide-react";
+import { ArrowRight, Users, Calendar, BookOpen, Award, TrendingUp, Code, Briefcase, ChevronRight, Zap, Shield, Globe, Star, Heart, Coffee, Cpu, Github, Linkedin, Twitter, Mail, Phone, MapPin } from "lucide-react";
 import axios from "axios";
 
-
-const Button = ({ children, className, variant = "default", size, onClick, ...props }) => (
-  <button onClick={onClick} className={`px-6 py-3 rounded-lg font-semibold transition-all ${className}`} {...props}>
-    {children}
-  </button>
-);
-
+// Simplified Button component
+const Button = ({ children, className, variant = "default", onClick, ...props }) => {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${className}`}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+};
 
 const Hero = () => {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [isVisible, setIsVisible] = useState(false);
   const [stats, setStats] = useState({
     active_members: 500,
     annual_events: 50,
     projects: 100
   });
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+
+  // Intersection Observer for animations
+  const [visibleSections, setVisibleSections] = useState({});
+  const sectionRefs = useRef([]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setVisibleSections((prev) => ({
+              ...prev,
+              [(entry.target as HTMLElement).dataset.section]: true,
+            }));
+          }
+        });
+      },
+      { threshold: 0.1, rootMargin: "0px 0px -50px 0px" }
+    );
+
+    sectionRefs.current.forEach((ref) => {
+      if (ref) observer.observe(ref);
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   const slides = [
     {
       image: "/background slider1.jpeg",
       alt: "BITSA Community Event",
-      title: "Thriving Tech Community",
-      description: "Students collaborating on innovative projects"
     },
     {
       image: "/background slider2.jpeg",
       alt: "Workshop Session",
-      title: "Hands-On Learning",
-      description: "Interactive workshops and coding sessions"
     },
     {
       image: "/background slider3.jpeg",
       alt: "Hackathon Event",
-      title: "Innovation Challenges",
-      description: "Students competing in exciting hackathons"
     }
   ];
 
   useEffect(() => {
-    setIsVisible(true);
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
     }, 5000);
     return () => clearInterval(interval);
   }, [slides.length]);
 
-
   useEffect(() => {
     const fetchStats = async () => {
       try {
         setLoading(true);
-        setError(null);
         const response = await axios.get('http://localhost:8000/api/auth/stats/');
         setStats(response.data);
       } catch (error) {
         console.error('Error fetching stats:', error);
-        setError('Failed to fetch stats');
-        // Fallback to default values if API fails
-        setStats({
-          active_members: 500,
-          annual_events: 50,
-          projects: 100
-        });
+        // Keep default values if API fails
       } finally {
         setLoading(false);
       }
@@ -76,242 +90,57 @@ const Hero = () => {
     fetchStats();
   }, []);
 
-
-  // Counter Animation Hook
-  const useCounter = (end, duration = 2000, start = 0) => {
-    const [count, setCount] = useState(start);
-    const countRef = useRef(start);
-
-    useEffect(() => {
-      // Reset animation when end value changes
-      countRef.current = start;
-      setCount(start);
-
-      const increment = end / (duration / 16);
-      const timer = setInterval(() => {
-        countRef.current += increment;
-        if (countRef.current >= end) {
-          setCount(end);
-          clearInterval(timer);
-        } else {
-          setCount(Math.floor(countRef.current));
-        }
-      }, 16);
-
-      return () => clearInterval(timer);
-    }, [end, duration, start]);
-
-    return count;
-  };
-
-  const membersCount = useCounter(stats.active_members, 2000);
-  const eventsCount = useCounter(stats.annual_events, 2000);
-  const projectsCount = useCounter(stats.projects, 2000);
+  // Helper function to check if section is visible
+  const isVisible = (sectionId) => visibleSections[sectionId] || false;
 
   return (
-    <section className="min-h-screen pt-16 flex items-center bg-gradient-to-r from-slate-50 to-slate-100">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        {/* Top Section - Header and Badge */}
-        <div className={`text-center mb-8 sm:mb-12 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-10'}`}>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 sm:mb-6 text-slate-900 animate-fade-in">
-            BITSA
-          </h1>
-          
-          <p className="text-base sm:text-lg md:text-xl text-slate-600 mb-8 sm:mb-10 max-w-3xl mx-auto px-4">
-            Where <span className="font-semibold text-slate-700">Future Tech Leaders</span>{" "}
-            Connect, Learn, and <span className="font-semibold text-slate-800">Innovate Together</span>
-          </p>
-
-
-          {/* Stats Bar with Animated Counters */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 max-w-2xl mx-auto mb-8 sm:mb-12">
-            <div className="text-center p-3 sm:p-4 rounded-lg bg-white border border-slate-300 hover:shadow-lg hover:scale-105 transition-all duration-300 group">
-              <div className="text-xl sm:text-2xl font-bold text-slate-700 mb-1 group-hover:text-blue-600 transition-colors">
-                {loading ? (
-                  <div className="animate-pulse bg-slate-200 h-6 w-16 mx-auto rounded"></div>
-                ) : (
-                  <>
-                    {membersCount}+
-                    {error && <span className="text-xs text-red-500 ml-1">⚠</span>}
-                  </>
-                )}
-              </div>
-              <div className="text-xs sm:text-sm text-slate-600">Active Members</div>
-            </div>
-            <div className="text-center p-3 sm:p-4 rounded-lg bg-white border border-slate-300 hover:shadow-lg hover:scale-105 transition-all duration-300 group">
-              <div className="text-xl sm:text-2xl font-bold text-slate-700 mb-1 group-hover:text-blue-600 transition-colors">
-                {loading ? (
-                  <div className="animate-pulse bg-slate-200 h-6 w-16 mx-auto rounded"></div>
-                ) : (
-                  <>
-                    {eventsCount}+
-                    {error && <span className="text-xs text-red-500 ml-1">⚠</span>}
-                  </>
-                )}
-              </div>
-              <div className="text-xs sm:text-sm text-slate-600">Annual Events</div>
-            </div>
-            <div className="text-center p-3 sm:p-4 rounded-lg bg-white border border-slate-300 hover:shadow-lg hover:scale-105 transition-all duration-300 group">
-              <div className="text-xl sm:text-2xl font-bold text-slate-700 mb-1 group-hover:text-blue-600 transition-colors">
-                {loading ? (
-                  <div className="animate-pulse bg-slate-200 h-6 w-16 mx-auto rounded"></div>
-                ) : (
-                  <>
-                    {projectsCount}+
-                    {error && <span className="text-xs text-red-500 ml-1">⚠</span>}
-                  </>
-                )}
-              </div>
-              <div className="text-xs sm:text-sm text-slate-600">Projects</div>
-            </div>
+    <section className="min-h-screen bg-white overflow-x-hidden">
+      {/* Hero Section with Working Slider - Stronger Overlay for Text Readability */}
+      <div className="relative h-[600px] overflow-hidden">
+        {/* Background Slider */}
+        {slides.map((slide, index) => (
+          <div
+            key={index}
+            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+              index === currentSlide ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
+            <img
+              src={slide.image}
+              alt={slide.alt}
+              className="w-full h-full object-cover"
+            />
           </div>
-          
-          {/* Error Message */}
-          {error && (
-            <div className="max-w-2xl mx-auto mb-8">
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center">
-                <p className="text-xs sm:text-sm text-yellow-800">
-                  Showing demo data. Connect to backend to see live statistics.
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Middle Section - Slideshow and Content Side by Side */}
-        <div className={`grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 items-start mb-12 sm:mb-16 transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'}`}>
-          {/* Left Content - Slideshow */}
-          <div className="relative order-2 lg:order-1">
-            <div className="relative h-64 sm:h-80 md:h-96 lg:h-[450px] rounded-xl sm:rounded-2xl overflow-hidden shadow-lg border border-gray-200 hover:shadow-2xl transition-shadow duration-500">
-              {slides.map((slide, index) => (
-                <div
-                  key={index}
-                  className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
-                    index === currentSlide ? 'opacity-100 scale-100' : 'opacity-0 scale-105'
-                  }`}
-                >
-                  <img
-                    src={slide.image}
-                    alt={slide.alt}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                  <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-6 right-4 sm:right-6 text-white">
-                    <h3 className="text-base sm:text-lg md:text-xl font-bold mb-1">{slide.title}</h3>
-                    <p className="text-xs sm:text-sm opacity-90">{slide.description}</p>
-                  </div>
-                </div>
-              ))}
-              
-              <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-2">
-                {slides.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentSlide(index)}
-                    className={`h-2 rounded-full transition-all duration-300 ${
-                      index === currentSlide 
-                        ? 'bg-white w-6' 
-                        : 'bg-white/50 hover:bg-white/80 w-2'
-                    }`}
-                  />
-                ))}
-              </div>
-
-              <button
-                onClick={() => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)}
-                className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110"
-              >
-                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-white rotate-180" />
-              </button>
-              <button
-                onClick={() => setCurrentSlide((prev) => (prev + 1) % slides.length)}
-                className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110"
-              >
-                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-              </button>
-            </div>
-          </div>
-
-          {/* Right Content - Features */}
-          <div className="space-y-6 sm:space-y-8 order-1 lg:order-2">
-            <div className="space-y-4">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">
-                Your Gateway to{" "}
-                <span className="text-blue-700">Tech Excellence</span>
-              </h2>
-              
-              <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
-                At BITSA, we're committed to transforming IT education into real-world success. 
-                Our platform bridges the gap between academic learning and industry demands, 
-                providing you with the tools, connections, and opportunities to thrive in the 
-                digital landscape.
-              </p>
-              
-              <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
-                We empower students through hands-on experience, mentorship from industry professionals, 
-                and access to cutting-edge technologies. Whether you're interested in software development, 
-                cybersecurity, data science, or emerging technologies, BITSA offers a comprehensive ecosystem 
-                to support your journey from student to tech professional.
-              </p>
-            </div>
-
-            {/* Feature Icons Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-              <div className="flex items-center gap-3 p-3 sm:p-4 rounded-lg bg-blue-50 border border-blue-200 hover:border-blue-400 hover:shadow-md transition-all duration-300 hover:-translate-y-1">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-slate-600 flex items-center justify-center flex-shrink-0 hover:rotate-12 transition-transform duration-300">
-                  <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                </div>
-                <div>
-                  <div className="font-semibold text-sm sm:text-base text-slate-900">Fast-Track Learning</div>
-                  <div className="text-xs sm:text-sm text-slate-600">Accelerated skill development</div>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-3 p-3 sm:p-4 rounded-lg bg-slate-50 border border-slate-200 hover:border-slate-400 hover:shadow-md transition-all duration-300 hover:-translate-y-1">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-slate-600 flex items-center justify-center flex-shrink-0 hover:rotate-12 transition-transform duration-300">
-                  <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                </div>
-                <div>
-                  <div className="font-semibold text-sm sm:text-base text-slate-900">Industry Ready</div>
-                  <div className="text-xs sm:text-sm text-slate-600">Career-focused training</div>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-3 p-3 sm:p-4 rounded-lg bg-slate-50 border border-slate-200 hover:border-slate-400 hover:shadow-md transition-all duration-300 hover:-translate-y-1">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-slate-600 flex items-center justify-center flex-shrink-0 hover:rotate-12 transition-transform duration-300">
-                  <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                </div>
-                <div>
-                  <div className="font-semibold text-sm sm:text-base text-slate-900">Peer Network</div>
-                  <div className="text-xs sm:text-sm text-slate-600">Collaborative community</div>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-3 p-3 sm:p-4 rounded-lg bg-slate-50 border border-slate-200 hover:border-slate-400 hover:shadow-md transition-all duration-300 hover:-translate-y-1">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-slate-600 flex items-center justify-center flex-shrink-0 hover:rotate-12 transition-transform duration-300">
-                  <Globe className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                </div>
-                <div>
-                  <div className="font-semibold text-sm sm:text-base text-slate-900">Global Impact</div>
-                  <div className="text-xs sm:text-sm text-slate-600">Real-world projects</div>
-                </div>
-              </div>
-            </div>
-
-            {/* CTA Buttons with Navigation */}
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
+        ))}
+        
+        {/* Darker Overlay for Better Text Readability */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/70"></div>
+        
+        {/* Hero Content */}
+        <div className="absolute inset-0 container mx-auto px-4 sm:px-6 lg:px-8 flex items-center">
+          <div className="max-w-3xl text-white transform transition-all duration-1000 translate-y-0 opacity-100">
+            <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold mb-4 drop-shadow-lg animate-fade-in-up">
+              BITSA
+            </h1>
+            <p className="text-xl sm:text-2xl mb-4 text-white/90 drop-shadow animate-fade-in-up animation-delay-200">
+              Where Future Tech Leaders Connect, Learn, and Innovate
+            </p>
+            <p className="text-lg mb-8 text-white/80 max-w-2xl drop-shadow animate-fade-in-up animation-delay-400">
+              Join a thriving community of IT students committed to excellence in technology and innovation.
+            </p>
+            
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 animate-fade-in-up animation-delay-600">
               <Button
-                size="lg"
                 onClick={() => navigate("/register")}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg transition-all duration-300 font-semibold text-sm sm:text-base py-5 sm:py-6 hover:scale-105"
+                className="bg-white text-gray-900 hover:bg-gray-100 px-8 py-4 text-lg flex items-center justify-center group shadow-lg hover:scale-105 transition-transform"
               >
-                Start Your Journey
-                <ArrowRight className="ml-2" size={18} />
+                Join Community
+                <ChevronRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
               <Button
-                size="lg"
                 onClick={() => navigate("/about")}
-                className="w-full border-2 border-blue-600 hover:border-blue-700 text-blue-700 hover:text-blue-800 bg-white hover:bg-blue-50 transition-all duration-300 font-semibold text-sm sm:text-base py-5 sm:py-6 hover:scale-105"
+                className="border-2 border-white text-white hover:bg-white/20 px-8 py-4 text-lg backdrop-blur-sm hover:scale-105 transition-transform"
               >
                 Learn More
               </Button>
@@ -319,115 +148,402 @@ const Hero = () => {
           </div>
         </div>
 
-        {/* Achievement Banner */}
-        <div className={`mb-12 sm:mb-16 transition-all duration-1000 delay-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl sm:rounded-2xl p-6 sm:p-8 text-white shadow-xl">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="text-center hover:scale-105 transition-transform duration-300">
-                <Award className="w-8 h-8 mx-auto mb-3 animate-bounce" style={{ animationDuration: '3s' }} />
-                <div className="text-2xl sm:text-3xl font-bold mb-1">150+</div>
-                <div className="text-sm opacity-90">Certificates Awarded</div>
+        {/* Slider Navigation Dots */}
+        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex gap-2">
+          {slides.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentSlide(index)}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                index === currentSlide 
+                  ? 'bg-white w-8' 
+                  : 'bg-white/50 hover:bg-white/80 w-2'
+              }`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Stats Bar - Clean and Simple */}
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 -mt-12 relative z-10">
+        <div 
+          ref={(el) => (sectionRefs.current[0] = el)}
+          data-section="stats"
+          className={`bg-white rounded-xl shadow-xl p-8 grid grid-cols-3 gap-4 max-w-3xl mx-auto border border-gray-100 transform transition-all duration-700 ${
+            isVisible('stats') ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
+          }`}
+        >
+          {[
+            { label: 'Active Members', value: stats.active_members, icon: Users },
+            { label: 'Annual Events', value: stats.annual_events, icon: Calendar },
+            { label: 'Projects Completed', value: stats.projects, icon: Code },
+          ].map((item, index) => (
+            <div key={index} className="text-center">
+              <item.icon className="w-6 h-6 text-blue-600 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-gray-900">
+                {loading ? '-' : `${item.value}+`}
               </div>
-              <div className="text-center hover:scale-105 transition-transform duration-300">
-                <TrendingUp className="w-8 h-8 mx-auto mb-3 animate-bounce" style={{ animationDuration: '3s', animationDelay: '0.5s' }} />
-                <div className="text-2xl sm:text-3xl font-bold mb-1">85%</div>
-                <div className="text-sm opacity-90">Job Placement Rate</div>
+              <div className="text-sm text-gray-600">{item.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Extended Content Section */}
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        
+        {/* About Section - Light Blue Background */}
+        <div 
+          ref={(el) => (sectionRefs.current[1] = el)}
+          data-section="about"
+          className="max-w-3xl mx-auto text-center mb-20 p-12 rounded-3xl bg-blue-50 transform transition-all duration-700"
+          style={{
+            transform: isVisible('about') ? 'translateY(0)' : 'translateY(40px)',
+            opacity: isVisible('about') ? 1 : 0
+          }}
+        >
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+            Your Gateway to Tech Excellence
+          </h2>
+          <p className="text-lg text-gray-700 leading-relaxed">
+            At BITSA, we bridge the gap between academic learning and industry demands, 
+            providing students with the tools, connections, and opportunities to thrive 
+            in the digital landscape. Our community is built on collaboration, innovation, 
+            and a shared passion for technology.
+          </p>
+        </div>
+
+        {/* Features Grid - White Cards on Light Gray Background */}
+        <div 
+          ref={(el) => (sectionRefs.current[2] = el)}
+          data-section="features"
+          className="mb-20 p-8 bg-gray-50 rounded-3xl transform transition-all duration-700"
+          style={{
+            transform: isVisible('features') ? 'translateY(0)' : 'translateY(40px)',
+            opacity: isVisible('features') ? 1 : 0
+          }}
+        >
+          <h3 className="text-2xl font-bold text-gray-900 text-center mb-10">What We Offer</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { icon: Users, title: "Community", description: "Connect with 500+ passionate IT students and mentors", color: "blue" },
+              { icon: Calendar, title: "Events", description: "50+ annual workshops, hackathons, and tech talks", color: "green" },
+              { icon: BookOpen, title: "Resources", description: "Curated learning materials and project guides", color: "purple" },
+              { icon: Zap, title: "Fast-Track", description: "Accelerated skill development programs", color: "orange" },
+              { icon: Shield, title: "Industry Ready", description: "Career-focused training and certification", color: "red" },
+              { icon: Globe, title: "Global Network", description: "Connect with professionals worldwide", color: "indigo" },
+              { icon: Award, title: "Recognition", description: "150+ certificates awarded annually", color: "yellow" },
+              { icon: Briefcase, title: "Placements", description: "85% job placement rate", color: "pink" },
+            ].map((feature, index) => (
+              <div key={index} className="group p-6 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 hover:-translate-y-2">
+                <div className={`w-12 h-12 bg-${feature.color}-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-${feature.color}-600 transition-colors`}>
+                  <feature.icon className={`w-6 h-6 text-${feature.color}-600 group-hover:text-white transition-colors`} />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{feature.title}</h3>
+                <p className="text-sm text-gray-600">{feature.description}</p>
               </div>
-              <div className="text-center hover:scale-105 transition-transform duration-300">
-                <Code className="w-8 h-8 mx-auto mb-3 animate-bounce" style={{ animationDuration: '3s', animationDelay: '1s' }} />
-                <div className="text-2xl sm:text-3xl font-bold mb-1">30+</div>
-                <div className="text-sm opacity-90">Tech Partnerships</div>
+            ))}
+          </div>
+        </div>
+
+        {/* Achievement Section - Light Indigo Background */}
+        <div 
+          ref={(el) => (sectionRefs.current[3] = el)}
+          data-section="achievements"
+          className="bg-indigo-50 rounded-3xl p-12 mb-20 transform transition-all duration-700"
+          style={{
+            transform: isVisible('achievements') ? 'translateY(0)' : 'translateY(40px)',
+            opacity: isVisible('achievements') ? 1 : 0
+          }}
+        >
+          <h3 className="text-2xl font-bold text-gray-900 text-center mb-10">Our Impact in Numbers</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {[
+              { icon: Award, value: '150+', label: 'Certificates Awarded' },
+              { icon: TrendingUp, value: '85%', label: 'Placement Rate' },
+              { icon: Briefcase, value: '30+', label: 'Tech Partners' },
+              { icon: Code, value: '200+', label: 'Internships' },
+            ].map((item, index) => (
+              <div key={index} className="text-center group">
+                <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-indigo-600 transition-colors shadow-md">
+                  <item.icon className="w-8 h-8 text-indigo-600 group-hover:text-white transition-colors" />
+                </div>
+                <div className="text-3xl font-bold text-gray-900 mb-1">{item.value}</div>
+                <div className="text-sm text-gray-600">{item.label}</div>
               </div>
-              <div className="text-center hover:scale-105 transition-transform duration-300">
-                <Briefcase className="w-8 h-8 mx-auto mb-3 animate-bounce" style={{ animationDuration: '3s', animationDelay: '1.5s' }} />
-                <div className="text-2xl sm:text-3xl font-bold mb-1">200+</div>
-                <div className="text-sm opacity-90">Internship Opportunities</div>
+            ))}
+          </div>
+        </div>
+
+        {/* Testimonials Section - White Background */}
+        <div 
+          ref={(el) => (sectionRefs.current[4] = el)}
+          data-section="testimonials"
+          className="mb-20 transform transition-all duration-700"
+          style={{
+            transform: isVisible('testimonials') ? 'translateY(0)' : 'translateY(40px)',
+            opacity: isVisible('testimonials') ? 1 : 0
+          }}
+        >
+          <h3 className="text-2xl font-bold text-gray-900 text-center mb-10">What Our Members Say</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                name: "Sarah Johnson",
+                role: "CS Student",
+                quote: "BITSA transformed my college experience. The workshops and mentorship helped me land my dream internship.",
+                image: "/avatar1.jpg"
+              },
+              {
+                name: "Michael Chen",
+                role: "Software Engineer",
+                quote: "The community here is incredible. I've made lifelong friends and learned so much from peer collaborations.",
+                image: "/avatar2.jpg"
+              },
+              {
+                name: "Priya Patel",
+                role: "Tech Lead",
+                quote: "From hackathon participant to mentor - BITSA's supportive environment helped me grow at every stage.",
+                image: "/avatar3.jpg"
+              }
+            ].map((testimonial, index) => (
+              <div key={index} className="p-6 bg-white rounded-xl border border-gray-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-2">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-indigo-600 rounded-full mr-4 overflow-hidden flex items-center justify-center text-white font-bold text-lg">
+                    {testimonial.name.charAt(0)}
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">{testimonial.name}</h4>
+                    <p className="text-sm text-gray-600">{testimonial.role}</p>
+                  </div>
+                </div>
+                <p className="text-gray-700 italic">"{testimonial.quote}"</p>
+                <div className="flex mt-3">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
+                  ))}
+                </div>
               </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Upcoming Events - Light Green Background */}
+        <div 
+          ref={(el) => (sectionRefs.current[5] = el)}
+          data-section="events"
+          className="mb-20 p-8 bg-green-50 rounded-3xl transform transition-all duration-700"
+          style={{
+            transform: isVisible('events') ? 'translateY(0)' : 'translateY(40px)',
+            opacity: isVisible('events') ? 1 : 0
+          }}
+        >
+          <div className="flex justify-between items-center mb-8">
+            <h3 className="text-2xl font-bold text-gray-900">Upcoming Events</h3>
+            <button className="text-green-600 hover:text-green-700 font-medium flex items-center">
+              View All <ChevronRight className="w-4 h-4 ml-1" />
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {[
+              { title: "Web Development Workshop", date: "March 15, 2024", time: "2:00 PM", spots: 25 },
+              { title: "AI/ML Hackathon", date: "March 20, 2024", time: "9:00 AM", spots: 50 },
+              { title: "Tech Career Fair", date: "March 25, 2024", time: "10:00 AM", spots: 100 },
+              { title: "Cloud Computing Seminar", date: "March 30, 2024", time: "3:00 PM", spots: 30 },
+            ].map((event, index) => (
+              <div key={index} className="flex items-center p-4 bg-white rounded-xl border border-green-200 hover:border-green-400 transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+                <div className="w-16 h-16 bg-green-100 rounded-lg flex flex-col items-center justify-center mr-4">
+                  <span className="text-xl font-bold text-green-600">{event.date.split(' ')[1]}</span>
+                  <span className="text-xs text-green-600">{event.date.split(' ')[0]}</span>
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-gray-900">{event.title}</h4>
+                  <p className="text-sm text-gray-600">{event.time} • {event.spots} spots left</p>
+                </div>
+                <button className="text-green-600 hover:text-green-700">
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Partners Section - Light Purple Background */}
+        <div 
+          ref={(el) => (sectionRefs.current[6] = el)}
+          data-section="partners"
+          className="mb-20 p-8 bg-purple-50 rounded-3xl transform transition-all duration-700"
+          style={{
+            transform: isVisible('partners') ? 'translateY(0)' : 'translateY(40px)',
+            opacity: isVisible('partners') ? 1 : 0
+          }}
+        >
+          <h3 className="text-2xl font-bold text-gray-900 text-center mb-8">Our Partners</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+            {[1,2,3,4,5,6].map((i) => (
+              <div key={i} className="h-16 bg-white rounded-lg flex items-center justify-center text-purple-400 font-medium border border-purple-200 hover:border-purple-400 hover:shadow-md transition-all hover:-translate-y-1">
+                Partner {i}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* FAQ Section - Light Orange Background */}
+        <div 
+          ref={(el) => (sectionRefs.current[7] = el)}
+          data-section="faq"
+          className="mb-20 p-8 bg-orange-50 rounded-3xl transform transition-all duration-700"
+          style={{
+            transform: isVisible('faq') ? 'translateY(0)' : 'translateY(40px)',
+            opacity: isVisible('faq') ? 1 : 0
+          }}
+        >
+          <h3 className="text-2xl font-bold text-gray-900 text-center mb-8">Frequently Asked Questions</h3>
+          <div className="max-w-3xl mx-auto space-y-4">
+            {[
+              { q: "How do I join BITSA?", a: "Simply click the 'Join Community' button and fill out the registration form. It's free for all IT students!" },
+              { q: "What events do you organize?", a: "We organize hackathons, workshops, tech talks, networking sessions, and career fairs throughout the year." },
+              { q: "Can non-IT students join?", a: "Yes! While we focus on IT, we welcome all students interested in technology." },
+              { q: "Is there a membership fee?", a: "No, BITSA membership is completely free for students." },
+            ].map((faq, index) => (
+              <div key={index} className="bg-white border border-orange-200 rounded-lg p-4 hover:border-orange-400 hover:shadow-md transition-all hover:-translate-y-1">
+                <h4 className="font-semibold text-gray-900 mb-2">{faq.q}</h4>
+                <p className="text-gray-600">{faq.a}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Newsletter Section - Gradient Background */}
+        <div 
+          ref={(el) => (sectionRefs.current[8] = el)}
+          data-section="newsletter"
+          className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-3xl p-12 text-center text-white mb-20 transform transition-all duration-700"
+          style={{
+            transform: isVisible('newsletter') ? 'translateY(0)' : 'translateY(40px)',
+            opacity: isVisible('newsletter') ? 1 : 0
+          }}
+        >
+          <h3 className="text-2xl font-bold mb-4">Stay Updated</h3>
+          <p className="text-blue-100 mb-6 max-w-2xl mx-auto">
+            Subscribe to our newsletter for the latest events, resources, and opportunities.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+            <input
+              type="email"
+              placeholder="Enter your email"
+              className="flex-1 px-4 py-3 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            />
+            <button className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-all hover:scale-105">
+              Subscribe
+            </button>
+          </div>
+        </div>
+
+        {/* Contact Section - Light Gray Background */}
+        <div 
+          ref={(el) => (sectionRefs.current[9] = el)}
+          data-section="contact"
+          className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-20 p-8 bg-gray-100 rounded-3xl transform transition-all duration-700"
+          style={{
+            transform: isVisible('contact') ? 'translateY(0)' : 'translateY(40px)',
+            opacity: isVisible('contact') ? 1 : 0
+          }}
+        >
+          <div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-6">Get in Touch</h3>
+            <div className="space-y-4">
+              <div className="flex items-center p-3 bg-white rounded-lg hover:shadow-md transition-all">
+                <Mail className="w-5 h-5 text-blue-600 mr-3" />
+                <span className="text-gray-600">contact@bitsa.org</span>
+              </div>
+              <div className="flex items-center p-3 bg-white rounded-lg hover:shadow-md transition-all">
+                <Phone className="w-5 h-5 text-blue-600 mr-3" />
+                <span className="text-gray-600">+1 (555) 123-4567</span>
+              </div>
+              <div className="flex items-center p-3 bg-white rounded-lg hover:shadow-md transition-all">
+                <MapPin className="w-5 h-5 text-blue-600 mr-3" />
+                <span className="text-gray-600">123 Tech Street, Silicon Valley, CA</span>
+              </div>
+            </div>
+            <div className="flex gap-4 mt-6">
+              <a href="#" className="w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-blue-600 group transition-all hover:scale-110 shadow-md">
+                <Github className="w-5 h-5 text-gray-600 group-hover:text-white" />
+              </a>
+              <a href="#" className="w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-blue-600 group transition-all hover:scale-110 shadow-md">
+                <Linkedin className="w-5 h-5 text-gray-600 group-hover:text-white" />
+              </a>
+              <a href="#" className="w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-blue-600 group transition-all hover:scale-110 shadow-md">
+                <Twitter className="w-5 h-5 text-gray-600 group-hover:text-white" />
+              </a>
+            </div>
+          </div>
+          <div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-6">Quick Links</h3>
+            <div className="grid grid-cols-2 gap-4">
+              {['About Us', 'Events', 'Resources', 'Gallery', 'Blog', 'Contact', 'FAQs', 'Support'].map((link, index) => (
+                <a key={index} href="#" className="p-2 bg-white rounded-lg text-gray-600 hover:text-blue-600 hover:shadow-md transition-all hover:-translate-y-1 text-center">
+                  {link}
+                </a>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Bottom Section - Feature Cards */}
-        <div className={`grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 transition-all duration-1000 delay-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          <div className="group p-5 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl bg-white border-2 border-blue-200 hover:border-blue-400 hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-blue-600 flex items-center justify-center mb-4 sm:mb-5 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-              <Users className="text-white" size={24} />
-            </div>
-            <h3 className="text-lg sm:text-xl font-bold text-blue-900 mb-3">Collaborative Learning Ecosystem</h3>
-            <p className="text-sm sm:text-base text-gray-700 leading-relaxed mb-3 sm:mb-4">
-              Join a dynamic network of passionate IT students, industry experts, and alumni mentors. 
-              Experience peer-to-peer learning, code reviews, and project collaborations that accelerate 
-              your growth and expand your professional network. Participate in study groups, mentorship 
-              programs, and knowledge-sharing sessions that foster continuous learning and innovation.
-            </p>
-            <div className="flex items-center text-blue-700 font-semibold text-sm sm:text-base group-hover:translate-x-2 transition-transform duration-300">
-              <span>Explore Community</span>
-              <ArrowRight className="ml-2 w-4 h-4" />
-            </div>
-          </div>
-
-          <div className="group p-5 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl bg-white border-2 border-blue-200 hover:border-blue-400 hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-blue-600 flex items-center justify-center mb-4 sm:mb-5 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-              <Calendar className="text-white" size={24} />
-            </div>
-            <h3 className="text-lg sm:text-xl font-bold text-blue-900 mb-3">Innovation-Driven Events</h3>
-            <p className="text-sm sm:text-base text-gray-700 leading-relaxed mb-3 sm:mb-4">
-              From hackathons and coding competitions to industry workshops and tech talks, our events 
-              are designed to challenge your skills, spark creativity, and connect you with cutting-edge 
-              technologies and industry trends. Engage with guest speakers from leading tech companies, 
-              participate in hands-on workshops, and showcase your projects at demo days.
-            </p>
-            <div className="flex items-center text-blue-700 font-semibold hover:text-blue-800 transition-colors text-sm sm:text-base group-hover:translate-x-2 transition-transform duration-300">
-              <span>View Events</span>
-              <ArrowRight className="ml-2 w-4 h-4" />
-            </div>
-          </div>
-
-          <div className="group p-5 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl bg-white border-2 border-blue-200 hover:border-blue-400 hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-blue-600 flex items-center justify-center mb-4 sm:mb-5 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-              <BookOpen className="text-white" size={24} />
-            </div>
-            <h3 className="text-lg sm:text-xl font-bold text-blue-900 mb-3">Comprehensive Resource Hub</h3>
-            <p className="text-sm sm:text-base text-gray-700 leading-relaxed mb-3 sm:mb-4">
-              Access our curated library of tutorials, project guides, interview prep materials, and 
-              industry insights. Continuously updated content ensures you stay ahead in the rapidly 
-              evolving world of information technology. Benefit from exclusive learning paths, certification 
-              guides, and real-world case studies that prepare you for professional success.
-            </p>
-            <div className="flex items-center text-blue-700 font-semibold hover:text-blue-800 transition-colors text-sm sm:text-base group-hover:translate-x-2 transition-transform duration-300">
-              <span>Browse Resources</span>
-              <ArrowRight className="ml-2 w-4 h-4" />
-            </div>
-          </div>
+        {/* Final CTA - White Background */}
+        <div 
+          ref={(el) => (sectionRefs.current[10] = el)}
+          data-section="final-cta"
+          className="text-center border-t border-gray-200 pt-16 transform transition-all duration-700"
+          style={{
+            transform: isVisible('final-cta') ? 'translateY(0)' : 'translateY(40px)',
+            opacity: isVisible('final-cta') ? 1 : 0
+          }}
+        >
+          <h3 className="text-3xl font-bold text-gray-900 mb-4">
+            Ready to Start Your Journey?
+          </h3>
+          <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+            Join BITSA today and become part of a community dedicated to innovation and excellence in technology.
+          </p>
+          <Button
+            onClick={() => navigate("/register")}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 text-lg inline-flex items-center shadow-lg hover:shadow-xl transition-all hover:scale-105"
+          >
+            Get Started Now
+            <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          </Button>
         </div>
       </div>
 
       <style>{`
-        @keyframes fade-in {
-          from { opacity: 0; transform: translateY(-20px); }
-          to { opacity: 1; transform: translateY(0); }
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
         
-        @keyframes shimmer {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
+        .animate-fade-in-up {
+          animation: fadeInUp 0.8s ease-out forwards;
+          opacity: 0;
         }
         
-        @keyframes pulse-slow {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.02); }
+        .animation-delay-200 {
+          animation-delay: 0.2s;
         }
         
-        .animate-fade-in {
-          animation: fade-in 1s ease-out;
+        .animation-delay-400 {
+          animation-delay: 0.4s;
         }
         
-        .animate-shimmer {
-          animation: shimmer 2s ease-in-out infinite;
-        }
-        
-        .animate-pulse-slow {
-          animation: pulse-slow 3s ease-in-out infinite;
+        .animation-delay-600 {
+          animation-delay: 0.6s;
         }
       `}</style>
     </section>
